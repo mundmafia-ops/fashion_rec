@@ -1,0 +1,116 @@
+---
+import Bottle from "@/components/Bottle.astro";
+import NoteRow from "@/components/NoteRow.astro";
+import { HOUSE_LABELS, TIER_LABELS, type Fragrance } from "@/lib/types";
+import { shopLinks, initials } from "@/data/fragrances";
+
+interface Props {
+  f: Fragrance;
+  index: number;
+}
+const { f, index } = Astro.props;
+const links = shopLinks(f);
+const ini = initials(f.brand);
+const delay = (index % 4) * 80;
+---
+
+<article
+  class="card-wrap"
+  data-season={f.season}
+  data-times={f.times.join(" ")}
+  data-house={f.houseType}
+  data-price={f.priceTier}
+  data-families={f.families.join(" ")}
+  data-reveal
+  style={`--reveal-delay:${delay}ms`}
+>
+  <button
+    type="button"
+    class="card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl p-5 text-left"
+    data-open-drawer
+    data-id={f.id}
+    data-brand={f.brand}
+    data-name={f.name}
+    data-desc={f.description}
+    data-house={HOUSE_LABELS[f.houseType]}
+    data-price={TIER_LABELS[f.priceTier]}
+    data-season={f.season}
+    data-times={f.times.join(" ")}
+    data-top={f.notes.top.join(", ")}
+    data-mid={f.notes.middle.join(", ")}
+    data-base={f.notes.base.join(", ")}
+    data-families={f.families.join(", ")}
+    data-from={f.accent[0]}
+    data-to={f.accent[1]}
+    data-initials={ini}
+    data-aar={links.aar}
+    data-pg={links.perfumeGyaan}
+  >
+    <!-- bottle stage -->
+    <div class="relative mb-5 flex h-44 items-center justify-center">
+      <div
+        class="card-glow absolute inset-0 m-auto h-32 w-32 rounded-full"
+        style={`background:radial-gradient(circle, ${f.accent[0]}, transparent 70%)`}
+      >
+      </div>
+      <div class="relative h-40" style="aspect-ratio:200/280">
+        <Bottle from={f.accent[0]} to={f.accent[1]} initials={ini} id={f.id} />
+      </div>
+      <!-- season / tier corner tag -->
+      <span
+        class="absolute right-0 top-0 rounded-full border px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.16em]"
+        style="border-color:var(--border);color:var(--text-faint);background:var(--surface)"
+      >
+        {f.priceTier === "premium" ? "Premium" : "Budget"}
+      </span>
+    </div>
+
+    <!-- BRAND — top priority -->
+    <h3 class="text-xl font-bold leading-tight tracking-tight">{f.brand}</h3>
+    <!-- model / fragrance name — secondary -->
+    <p
+      class="mt-0.5 text-sm font-light"
+      style="color:var(--text-muted)"
+    >
+      {f.name}
+    </p>
+
+    <!-- note pyramid -->
+    <div
+      class="mt-4 space-y-2.5 border-t pt-4"
+      style="border-color:var(--border)"
+    >
+      <NoteRow tier="top" notes={f.notes.top} />
+      <NoteRow tier="middle" notes={f.notes.middle} />
+      <NoteRow tier="base" notes={f.notes.base} />
+    </div>
+
+    <!-- action -->
+    <div class="mt-5 flex items-center justify-between">
+      <a
+        href={links.aar}
+        target="_blank"
+        rel="noopener"
+        data-stop
+        class="link-underline inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em]"
+        style="color:var(--accent)"
+      >
+        Find a Bottle
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          ><path d="M7 17 17 7M7 7h10v10"></path></svg
+        >
+      </a>
+      <span
+        class="text-[0.6rem] uppercase tracking-[0.18em]"
+        style="color:var(--text-faint)">Details +</span
+      >
+    </div>
+  </button>
+</article>

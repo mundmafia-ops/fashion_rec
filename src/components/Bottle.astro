@@ -1,0 +1,82 @@
+---
+// A minimalist, premium fragrance bottle rendered as SVG.
+// Parametrised by a two-stop accent gradient + the house initials.
+interface Props {
+  from: string;
+  to: string;
+  initials: string;
+  id: string;
+  /** larger = used in the drawer */
+  big?: boolean;
+}
+const { from, to, initials, id, big = false } = Astro.props;
+const gid = `g-${id}`;
+const sid = `s-${id}`;
+const cid = `c-${id}`;
+---
+
+<svg
+  viewBox="0 0 200 280"
+  class={big ? "h-full w-full" : "bottle h-full w-full"}
+  role="img"
+  aria-label={`${initials} fragrance bottle`}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color={from}></stop>
+      <stop offset="100%" stop-color={to}></stop>
+    </linearGradient>
+    <linearGradient id={sid} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"></stop>
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.08"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id={cid} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color={to}></stop>
+      <stop offset="100%" stop-color={from}></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- cap -->
+  <rect x="82" y="14" width="36" height="34" rx="4" fill={`url(#${cid})`}></rect>
+  <!-- collar -->
+  <rect x="86" y="46" width="28" height="14" rx="2" fill={to} opacity="0.9"></rect>
+
+  <!-- body -->
+  <rect
+    x="48"
+    y="58"
+    width="104"
+    height="200"
+    rx="18"
+    fill={`url(#${gid})`}
+  ></rect>
+  <!-- glass highlight -->
+  <rect x="58" y="68" width="30" height="180" rx="14" fill={`url(#${sid})`}
+  ></rect>
+  <!-- soft inner shadow edge -->
+  <rect
+    x="48"
+    y="58"
+    width="104"
+    height="200"
+    rx="18"
+    fill="none"
+    stroke="#000"
+    stroke-opacity="0.12"
+    stroke-width="1"></rect>
+
+  <!-- engraved house initials -->
+  <text
+    x="100"
+    y="172"
+    text-anchor="middle"
+    font-family="Fraunces, Georgia, serif"
+    font-size="34"
+    font-weight="500"
+    fill="#ffffff"
+    fill-opacity="0.92"
+    letter-spacing="1">{initials}</text
+  >
+</svg>

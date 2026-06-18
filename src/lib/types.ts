@@ -1,63 +1,66 @@
-// Core domain types for the fashion deals / trends / price-tracking site.
+// Domain types for Fragrandise — an editorial fragrance catalogue.
 
-export type Category =
-  | "women"
-  | "men"
-  | "accessories"
-  | "footwear"
-  | "beauty";
+export type Season = "summer" | "winter";
+export type TimeOfDay = "day" | "night";
+export type HouseType = "niche" | "designer";
+export type PriceTier = "premium" | "budget";
 
-export type Retailer = {
-  id: string;
-  name: string;
-  /** Base URL, used for building product/deal links. */
-  url: string;
+export type Family =
+  | "Citrus"
+  | "Aquatic"
+  | "Fresh"
+  | "Sweet"
+  | "Spicy"
+  | "Leather"
+  | "Woody"
+  | "Floral"
+  | "Gourmand";
+
+export const FAMILIES: Family[] = [
+  "Citrus",
+  "Aquatic",
+  "Fresh",
+  "Sweet",
+  "Spicy",
+  "Leather",
+  "Woody",
+  "Floral",
+  "Gourmand",
+];
+
+export type NotePyramid = {
+  top: string[];
+  middle: string[];
+  base: string[];
 };
 
-export type PricePoint = {
-  /** ISO date string, e.g. "2026-06-18". */
-  date: string;
-  /** Price in the store's minor-unit-free currency value, e.g. 49.99. */
-  price: number;
-};
-
-export type Product = {
+export type Fragrance = {
   id: string;
-  title: string;
   brand: string;
-  category: Category;
-  retailerId: string;
-  imageUrl: string;
-  /** Current/list price. */
-  price: number;
-  currency: string; // e.g. "USD"
-  /** Full price history, oldest first. Powers the price-tracking charts. */
-  priceHistory: PricePoint[];
-  tags: string[];
-};
-
-export type Deal = {
-  id: string;
-  productId: string;
-  /** Price before the deal. */
-  wasPrice: number;
-  /** Discounted price. */
-  nowPrice: number;
-  /** Percentage off, 0-100. */
-  discountPct: number;
-  /** ISO date the deal expires. */
-  expiresAt: string;
-  /** Editorial flag for highlighting on the homepage. */
-  featured: boolean;
-};
-
-export type Trend = {
-  id: string;
-  title: string;
-  /** Short editorial blurb. */
+  name: string;
+  /** One-sentence editorial blurb (shown in the drawer). */
   description: string;
-  imageUrl: string;
-  category: Category;
-  /** Product ids that exemplify the trend. */
-  productIds: string[];
+  season: Season;
+  times: TimeOfDay[];
+  houseType: HouseType;
+  priceTier: PriceTier;
+  families: Family[];
+  notes: NotePyramid;
+  /** Two-stop gradient [from, to] for the bottle illustration. */
+  accent: [string, string];
+};
+
+export type ShopLinks = {
+  aar: string;
+  perfumeGyaan: string;
+};
+
+export const HOUSE_LABELS: Record<HouseType, string> = {
+  niche: "Niche House",
+  designer: "Designer House",
+};
+
+export const TIER_LABELS: Record<PriceTier, string> = {
+  premium: "Premium",
+  budget: "Budget",
 };

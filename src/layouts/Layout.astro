@@ -3,20 +3,135 @@ import "@/styles/global.css";
 
 interface Props {
   title?: string;
+  description?: string;
 }
 
-const { title = "Fashion · Deals · Trends · Price Tracking" } = Astro.props;
+const {
+  title = "Fragrandise — A Guide for Smelling Good",
+  description = "A Guide for Smelling Good. Fashion Blended. An editorial catalogue of niche & designer fragrances for every season.",
+} = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
     <title>{title}</title>
+
+    <!-- Set theme before paint to avoid flash -->
+    <script is:inline>
+      (function () {
+        try {
+          const t = localStorage.getItem("fr-theme");
+          if (t === "light" || t === "dark") {
+            document.documentElement.setAttribute("data-theme", t);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body class="bg-white text-neutral-900 antialiased">
+  <body class="antialiased">
     <slot />
+
+    <!-- Sillage cursor: crisp dot + fading trail, expands over bottles/headers -->
+    <script>
+      (function () {
+        const fine = window.matchMedia("(pointer: fine)").matches;
+        const reduce = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+        if (!fine || reduce) return;
+
+        document.documentElement.classList.add("cursor-custom");
+
+        const make = (cls: string) => {
+          const d = document.createElement("div");
+          d.className = cls;
+          document.body.appendChild(d);
+          return d;
+        };
+
+        const aura = make("cursor-aura");
+        const N = 14;
+        const trail: HTMLDivElement[] = [];
+        for (let i = 0; i < N; i++) trail.push(make("cursor-trail"));
+        const dot = make("cursor-dot");
+
+        let mx = window.innerWidth / 2;
+        let my = window.innerHeight / 2;
+        let dx = mx, dy = my, ax = mx, ay = my;
+        const pts = Array.from({ length: N }, () => ({ x: mx, y: my }));
+        let active = false;
+
+        const AURA_SEL = ".cr-item, .catcard, .card, [data-cursor='aura']";
+        const LINK_SEL =
+          "a, button, input, textarea, label, .chip, .cr-dot, .cr-arrow, .theme-toggle";
+
+        window.addEventListener(
+          "pointermove",
+          (e) => {
+            mx = e.clientX;
+            my = e.clientY;
+            if (!active) {
+              active = true;
+              document.body.classList.add("cursor-on");
+            }
+            document.body.classList.remove("cursor-hidden");
+            const t = e.target as Element;
+            const big = !!(t.closest && t.closest(AURA_SEL));
+            const link = !big && !!(t.closest && t.closest(LINK_SEL));
+            aura.classList.toggle("aura", big);
+            aura.classList.toggle("link", link);
+            dot.classList.toggle("hide", big);
+          },
+          { passive: true }
+        );
+
+        document.addEventListener("mouseleave", () =>
+          document.body.classList.add("cursor-hidden")
+        );
+        document.addEventListener("mouseenter", () =>
+          document.body.classList.remove("cursor-hidden")
+        );
+
+        function frame() {
+          dx += (mx - dx) * 0.5;
+          dy += (my - dy) * 0.5;
+          ax += (mx - ax) * 0.16;
+          ay += (my - ay) * 0.16;
+          dot.style.transform = `translate(${dx}px, ${dy}px) translate(-50%, -50%)`;
+          aura.style.transform = `translate(${ax}px, ${ay}px) translate(-50%, -50%)`;
+
+          let px = mx, py = my;
+          for (let i = 0; i < N; i++) {
+            const p = pts[i];
+            p.x += (px - p.x) * 0.34;
+            p.y += (py - p.y) * 0.34;
+            px = p.x;
+            py = p.y;
+            const s = 1 - i / N;
+            const node = trail[i];
+            node.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%) scale(${s})`;
+            node.style.opacity = active ? String(s * 0.38) : "0";
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      })();
+    </script>
   </body>
 </html>

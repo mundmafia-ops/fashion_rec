@@ -1,65 +1,671 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { getFeaturedDeals, getProduct, trends } from "@/data/mock";
+import FragranceCard from "@/components/FragranceCard.astro";
+import Bottle from "@/components/Bottle.astro";
+import { fragrances, getFragrance, initials } from "@/data/fragrances";
+import { FAMILIES } from "@/lib/types";
 
-const featured = getFeaturedDeals();
+const total = fragrances.length;
+
+// 12-bottle carousel: 3 Summer · 3 Winter · 3 Day · 3 Night
+const carouselSpec = [
+  { id: "creed-virgin-island-water", group: "Summer", temp: "warm" },
+  { id: "xerjoff-torino21", group: "Summer", temp: "warm" },
+  { id: "roja-elysium", group: "Summer", temp: "warm" },
+  { id: "bykilian-angels-share", group: "Winter", temp: "cool" },
+  { id: "xerjoff-naxos", group: "Winter", temp: "cool" },
+  { id: "tomford-tobacco-vanille", group: "Winter", temp: "cool" },
+  { id: "lv-imagination", group: "Day", temp: "warm" },
+  { id: "tomford-neroli-portofino", group: "Day", temp: "warm" },
+  { id: "versace-pour-homme", group: "Day", temp: "warm" },
+  { id: "creed-royal-oud", group: "Night", temp: "cool" },
+  { id: "roja-enigma", group: "Night", temp: "cool" },
+  { id: "lattafa-khamrah", group: "Night", temp: "cool" },
+] as const;
+
+const carousel = carouselSpec
+  .map((s) => ({ ...s, f: getFragrance(s.id)! }))
+  .filter((c) => c.f);
+
+const houses = [
+  "Creed", "Xerjoff", "Roja Parfums", "Tom Ford", "Louis Vuitton",
+  "Maison Francis Kurkdjian", "Amouage", "Parfums de Marly", "By Kilian",
+  "Nishane", "Initio", "Lattafa",
+];
+
+const count = (pred: (f: (typeof fragrances)[number]) => boolean) =>
+  fragrances.filter(pred).length;
+
+const bigNav = [
+  {
+    value: "summer",
+    label: "SUMMER",
+    sub: "Bright & fresh",
+    glow: "#ffcf52",
+    n: count((f) => f.season === "summer"),
+  },
+  {
+    value: "winter",
+    label: "WINTER",
+    sub: "Warm & cozy",
+    glow: "#6aa9e6",
+    n: count((f) => f.season === "winter"),
+  },
+  {
+    value: "day",
+    label: "DAY",
+    sub: "Clean & sharp",
+    glow: "#ffcf52",
+    n: count((f) => f.times.includes("day")),
+  },
+  {
+    value: "night",
+    label: "NIGHT",
+    sub: "Deep & bold",
+    glow: "#6aa9e6",
+    n: count((f) => f.times.includes("night")),
+  },
+];
 ---
 
 <Layout>
-  <main class="mx-auto max-w-5xl px-6 py-16">
-    <header class="mb-12">
-      <p class="text-xs uppercase tracking-[0.2em] text-neutral-500">
-        Fashion · Deals · Trends · Price Tracking
-      </p>
-      <h1 class="mt-2 text-4xl font-semibold tracking-tight">
-        The edit, before it sells out.
-      </h1>
-      <p class="mt-3 max-w-prose text-neutral-600">
-        Scaffold ready, now on Astro. Below is mock data flowing through the
-        data layer — UI to come.
-      </p>
-    </header>
+  <!-- ───────────────────────── Header ───────────────────────── -->
+  <header id="site-header" class="fixed inset-x-0 top-0 z-40 transition-all duration-500">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
+      <a href="#top" class="font-display text-xl tracking-tight" style="letter-spacing:0.04em">
+        FRAGRANDISE
+      </a>
+      <nav class="hidden items-center gap-10 md:flex">
+        <a href="#catalogue" class="link-underline text-xs uppercase tracking-[0.2em]" style="color:var(--text-muted)">Categories</a>
+        <a href="#about" class="link-underline text-xs uppercase tracking-[0.2em]" style="color:var(--text-muted)">About</a>
+        <a href="#footer" class="link-underline text-xs uppercase tracking-[0.2em]" style="color:var(--text-muted)">Affiliates</a>
+      </nav>
+      <div class="flex items-center gap-4">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode" title="Toggle theme">
+          <span class="knob">
+            <svg id="icon-moon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+            <svg id="icon-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+            </svg>
+          </span>
+        </button>
+        <button aria-label="Cart" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text-muted)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
 
-    <section class="mb-12">
-      <h2 class="mb-4 text-sm font-medium uppercase tracking-wide text-neutral-500">
-        Featured deals
-      </h2>
-      <ul class="grid gap-4 sm:grid-cols-2">
-        {
-          featured.map((deal) => {
-            const product = getProduct(deal.productId);
-            if (!product) return null;
-            return (
-              <li class="rounded-lg border border-neutral-200 p-4">
-                <p class="font-medium">{product.title}</p>
-                <p class="text-sm text-neutral-500">{product.brand}</p>
-                <p class="mt-2 text-sm">
-                  <span class="font-semibold">${deal.nowPrice}</span>{" "}
-                  <span class="text-neutral-400 line-through">
-                    ${deal.wasPrice}
-                  </span>{" "}
-                  <span class="text-orange-600">−{deal.discountPct}%</span>
-                </p>
-              </li>
-            );
-          })
-        }
-      </ul>
+  <main id="top">
+    <!-- ─────────── Hero with embedded bottle carousel ─────────── -->
+    <section class="relative overflow-hidden px-6 pb-10 pt-32 md:px-10 md:pt-40">
+      <div class="relative mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <!-- left: copy -->
+        <div>
+          <p class="eyebrow fade-in" style="--d:150ms">Fashion · Fragrance · Editorial</p>
+          <h1 class="font-display mt-6 text-[2.7rem] font-light leading-[0.95] tracking-tight sm:text-6xl lg:text-[5rem]">
+            <span class="hero-line"><span style="--d:120ms">A Guide for</span></span>
+            <span class="hero-line"><span class="italic" style="--d:240ms;color:var(--accent)">Smelling Good.</span></span>
+            <span class="hero-line"><span style="--d:360ms">Fashion Blended.</span></span>
+          </h1>
+          <p class="mt-8 max-w-md text-base leading-relaxed fade-in" style="--d:680ms;color:var(--text-muted)">
+            A curated catalogue of {total} fragrances — niche powerhouses to budget gems — sorted by season, time, house, and scent profile.
+          </p>
+          <a href="#catalogue" class="btn-accent mt-7 inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs uppercase tracking-[0.2em] fade-in" style="--d:760ms">
+            Explore the Edit
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
+          </a>
+        </div>
+
+        <!-- right: the bottle carousel (in place of the old glow blob) -->
+        <div class="relative fade-in" style="--d:500ms">
+          <div id="carousel" class="carousel relative mx-auto h-[26rem] w-full max-w-xl sm:h-[30rem]">
+            {
+              carousel.map((c, i) => (
+                <figure class="cr-item" data-i={i} data-id={c.f.id} data-group={c.group}>
+                  <div class="cr-aura" data-temp={c.temp} />
+                  <div class="cr-float relative h-60 sm:h-64" style="aspect-ratio:200/280">
+                    <Bottle
+                      from={c.f.accent[0]}
+                      to={c.f.accent[1]}
+                      initials={initials(c.f.brand)}
+                      id={`cr-${c.f.id}`}
+                    />
+                  </div>
+                  <figcaption class="cr-cap">
+                    <span class="cr-group">{c.group}</span>
+                    <span class="cr-brand">{c.f.brand}</span>
+                    <span class="cr-name">{c.f.name}</span>
+                  </figcaption>
+                </figure>
+              ))
+            }
+          </div>
+
+          <!-- slider controls -->
+          <div class="mt-4 flex items-center justify-center gap-4">
+            <button id="cr-prev" class="cr-arrow" aria-label="Previous bottle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
+            <div id="cr-dots" class="flex items-center justify-center gap-2"></div>
+            <button id="cr-next" class="cr-arrow" aria-label="Next bottle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </div>
+          <p class="mt-2 text-center text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--text-faint)">Drag · or tap a bottle to view it</p>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2 class="mb-4 text-sm font-medium uppercase tracking-wide text-neutral-500">
-        Trending now
-      </h2>
-      <ul class="flex flex-wrap gap-2">
-        {
-          trends.map((trend) => (
-            <li class="rounded-full border border-neutral-200 px-3 py-1 text-sm">
-              {trend.title}
-            </li>
-          ))
-        }
-      </ul>
+    <!-- ───────────────────── Marquee of houses ─────────────────── -->
+    <div class="overflow-hidden border-y py-5" style="border-color:var(--border)">
+      <div class="marquee-track flex w-max items-center gap-12 whitespace-nowrap">
+        {[...houses, ...houses].map((h) => (
+          <span class="font-display text-lg" style="color:var(--text-faint)">
+            {h} <span style="color:var(--accent)">·</span>
+          </span>
+        ))}
+      </div>
+    </div>
+
+    <!-- ───────────────────────── Catalogue ───────────────────────── -->
+    <section id="catalogue" class="px-6 py-16 md:px-10 md:py-24">
+      <div class="mx-auto max-w-7xl">
+        <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between" data-reveal>
+          <div>
+            <p class="eyebrow">The Catalogue</p>
+            <h2 class="font-display mt-3 text-4xl font-light tracking-tight md:text-6xl">Pick your category.</h2>
+          </div>
+          <p class="max-w-xs text-sm" style="color:var(--text-muted)">
+            Switch the big categories, then refine in the sidebar. Every pick links to a trusted decant partner.
+          </p>
+        </div>
+
+        <!-- seasonal category cards -->
+        <div id="big-nav" class="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4" data-reveal>
+          {bigNav.map((b) => (
+            <button
+              class="catcard group relative overflow-hidden rounded-2xl border p-5 text-left md:p-6"
+              data-mood={b.value}
+              aria-pressed="false"
+              style={`--glow:${b.glow}`}
+            >
+              <span class="catcard-glow" />
+              <span class="relative flex items-center justify-between">
+                <span class="catcard-icon" set:html={b.value === "summer" ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>` : b.value === "winter" ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19M12 4l-2 2 2 2 2-2-2-2M12 16l-2 2 2 2 2-2-2-2M4 12l2-2 2 2-2 2-2-2M16 12l2-2 2 2-2 2-2-2"/></svg>` : b.value === "day" ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0M12 2v7M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1M8 6l4-4 4 4"/></svg>` : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>`} />
+                <span class="text-[0.62rem] uppercase tracking-[0.16em]" style="color:var(--text-faint)">{b.n} scents</span>
+              </span>
+              <span class="relative mt-10 block md:mt-14">
+                <span class="block text-[0.6rem] uppercase tracking-[0.22em]" style="color:var(--text-muted)">{b.sub}</span>
+                <span class="font-display block text-3xl leading-none tracking-tight md:text-4xl">{b.label}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <!-- sidebar + grid -->
+        <div class="mt-10 grid gap-8 lg:grid-cols-[250px_1fr]">
+          <!-- sidebar -->
+          <aside class="h-max lg:sticky lg:top-24">
+            <div class="rounded-2xl border p-6" style="border-color:var(--border);background:var(--surface)">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-semibold uppercase tracking-[0.16em]">Filters</p>
+                <button id="reset-filters" class="text-[0.65rem] uppercase tracking-[0.14em]" style="color:var(--accent)">Reset</button>
+              </div>
+
+              <div class="filter-group mt-6">
+                <p class="eyebrow mb-3">Price Tier</p>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="budget" aria-pressed="false">Budget</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="premium" aria-pressed="false">Premium</button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <p class="eyebrow mb-3">House Type</p>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="house" data-value="designer" aria-pressed="false">Designer</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="house" data-value="niche" aria-pressed="false">Niche</button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <p class="eyebrow mb-3">Olfactory Profile</p>
+                <div class="flex flex-wrap gap-2">
+                  {FAMILIES.map((fam) => (
+                    <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="family" data-value={fam} aria-pressed="false">{fam}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- grid -->
+          <div>
+            <p id="result-count" class="mb-5 text-xs uppercase tracking-[0.2em]" style="color:var(--text-faint)">Showing {total} of {total}</p>
+            <div id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {fragrances.map((f, i) => <FragranceCard f={f} index={i} />)}
+            </div>
+            <p id="empty-state" class="hidden py-20 text-center font-display text-2xl" style="color:var(--text-faint)">
+              Nothing matches that mood. Try fewer filters.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── About ───────────────────────── -->
+    <section id="about" class="border-t px-6 py-24 md:px-10" style="border-color:var(--border)">
+      <div class="mx-auto grid max-w-7xl gap-12 md:grid-cols-2 md:items-center" data-reveal>
+        <h2 class="font-display text-3xl font-light leading-tight tracking-tight md:text-5xl">
+          Scent is the most under-rated part of getting dressed.
+        </h2>
+        <div class="space-y-5 text-base" style="color:var(--text-muted)">
+          <p>Fragrandise is an editorial guide, not a store. We taste-test the hype so you don't have to — pairing each bottle with the season, the hour, the house, and the budget it actually belongs to.</p>
+          <p>Every recommendation links to a vetted decant partner, so you can try before you commit to a full bottle. No fluff, just the edit.</p>
+        </div>
+      </div>
     </section>
   </main>
+
+  <!-- ───────────────────────── Footer ───────────────────────── -->
+  <footer id="footer" class="border-t px-6 pb-10 pt-20 md:px-10" style="border-color:var(--border)">
+    <div class="mx-auto max-w-7xl">
+      <div class="grid gap-12 md:grid-cols-2">
+        <div>
+          <h3 class="font-display text-3xl tracking-tight">FRAGRANDISE</h3>
+          <p class="mt-4 max-w-sm text-sm" style="color:var(--text-muted)">Join the list for monthly drops, blind-buy verdicts, and seasonal edits — straight to your inbox.</p>
+          <form id="newsletter" class="mt-6 flex max-w-md items-center gap-2 rounded-full border p-1.5" style="border-color:var(--border-strong)">
+            <input type="email" required placeholder="you@scent.com" class="w-full bg-transparent px-4 py-2 text-sm outline-none" style="color:var(--text)" />
+            <button type="submit" class="btn-accent shrink-0 rounded-full px-5 py-2 text-xs uppercase tracking-[0.18em]">Join the list</button>
+          </form>
+        </div>
+        <div class="grid grid-cols-2 gap-8 md:justify-items-end">
+          <div>
+            <p class="eyebrow mb-4">Explore</p>
+            <ul class="space-y-2 text-sm" style="color:var(--text-muted)">
+              <li><a href="#catalogue" class="link-underline">Categories</a></li>
+              <li><a href="#about" class="link-underline">About</a></li>
+              <li><a href="#footer" class="link-underline">Affiliates</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="eyebrow mb-4">Legal</p>
+            <ul class="space-y-2 text-sm" style="color:var(--text-muted)">
+              <li><a href="#" class="link-underline">Privacy Policy</a></li>
+              <li><a href="#" class="link-underline">Terms of Service</a></li>
+              <li><a href="#" class="link-underline">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="mt-16 flex flex-col gap-3 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between" style="border-color:var(--border);color:var(--text-faint)">
+        <p>© 2026 Fragrandise. All rights reserved.</p>
+        <p>A Guide for Smelling Good. Fashion Blended.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ───────────────────────── Drawer / modal ───────────────────────── -->
+  <div id="drawer" class="fixed inset-0 z-50">
+    <div class="scrim absolute inset-0" style="background:rgba(0,0,0,0.6)" data-close-drawer></div>
+    <aside class="panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-y-auto sm:max-w-lg" style="background:var(--bg-soft)">
+      <div class="flex items-center justify-between px-7 pt-7">
+        <p class="eyebrow" id="d-meta"></p>
+        <button data-close-drawer aria-label="Close" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div id="d-stage" class="relative mx-7 mt-4 flex h-72 items-center justify-center rounded-2xl" style="background:var(--surface)">
+        <div id="d-glow" class="absolute inset-0 m-auto h-48 w-48 rounded-full" style="filter:blur(48px);opacity:0.4"></div>
+        <div id="d-bottle" class="relative h-60" style="aspect-ratio:200/280"></div>
+      </div>
+      <div class="px-7 py-7">
+        <h3 class="text-3xl font-bold tracking-tight" id="d-brand"></h3>
+        <p class="font-display mt-1 text-xl font-light" id="d-name" style="color:var(--text-muted)"></p>
+        <p class="mt-4 text-base leading-relaxed" id="d-desc" style="color:var(--text-muted)"></p>
+
+        <div class="mt-6 flex flex-wrap gap-2" id="d-tags"></div>
+
+        <p class="eyebrow mt-8 mb-3">Note Pyramid</p>
+        <div class="space-y-3" id="d-notes"></div>
+
+        <p class="eyebrow mt-8 mb-3">Where to Buy</p>
+        <div class="flex flex-col gap-3">
+          <a id="d-aar" href="#" target="_blank" rel="noopener" class="btn-accent flex items-center justify-between rounded-xl px-5 py-4 text-sm">
+            <span class="font-medium">Find a Bottle · AAR Fragrances</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"></path></svg>
+          </a>
+          <a id="d-pg" href="#" target="_blank" rel="noopener" class="btn-ghost flex items-center justify-between rounded-xl px-5 py-4 text-sm">
+            <span class="font-medium">View on Perfume Gyaan</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"></path></svg>
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
 </Layout>
+
+<script>
+  // ─── Theme toggle ───────────────────────────────────────────────────────
+  const root = document.documentElement;
+  const toggle = document.getElementById("theme-toggle");
+  const moon = document.getElementById("icon-moon");
+  const sun = document.getElementById("icon-sun");
+  function syncIcons() {
+    const light = root.getAttribute("data-theme") === "light";
+    if (moon) moon.style.display = light ? "none" : "block";
+    if (sun) sun.style.display = light ? "block" : "none";
+  }
+  syncIcons();
+  toggle?.addEventListener("click", () => {
+    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("fr-theme", next); } catch (e) {}
+    syncIcons();
+  });
+
+  // ─── Header on scroll ───────────────────────────────────────────────────
+  const header = document.getElementById("site-header");
+  const onScroll = () => {
+    if (!header) return;
+    if (window.scrollY > 24) {
+      header.style.background = "color-mix(in srgb, var(--bg) 82%, transparent)";
+      header.style.backdropFilter = "blur(18px)";
+      header.style.borderBottom = "1px solid var(--border)";
+    } else {
+      header.style.background = "transparent";
+      header.style.backdropFilter = "none";
+      header.style.borderBottom = "1px solid transparent";
+    }
+  };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // ─── Parallax ───────────────────────────────────────────────────────────
+  const parallaxEls = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY;
+      for (const el of parallaxEls) {
+        const speed = parseFloat(el.dataset.parallax || "0");
+        el.style.transform = `translateY(${y * speed}px)`;
+      }
+      ticking = false;
+    });
+  }, { passive: true });
+
+  // ─── Reveal on scroll ───────────────────────────────────────────────────
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    }
+  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+
+  // ─── Carousel (draggable slider + tap to view in catalogue) ─────────────
+  const carouselEl = document.getElementById("carousel");
+  if (carouselEl) {
+    const crItems = Array.from(carouselEl.querySelectorAll<HTMLElement>(".cr-item"));
+    const n = crItems.length;
+    let pos = 0; // fractional position; round() = active bottle
+    let crTimer: number | undefined;
+
+    const dotsWrap = document.getElementById("cr-dots");
+    crItems.forEach((_, i) => {
+      const d = document.createElement("button");
+      d.className = "cr-dot";
+      d.setAttribute("aria-label", `Go to bottle ${i + 1}`);
+      d.addEventListener("click", () => { pos = i; layout(); restart(); });
+      dotsWrap?.appendChild(d);
+    });
+    const dots = Array.from(dotsWrap?.children || []) as HTMLElement[];
+
+    const spacingOf = () => {
+      const cw = carouselEl.clientWidth || 480;
+      return Math.max(86, Math.min(150, cw * 0.26));
+    };
+    const activeIndex = () => ((Math.round(pos) % n) + n) % n;
+
+    function layout() {
+      const spacing = spacingOf();
+      const ai = activeIndex();
+      crItems.forEach((el, i) => {
+        let off = i - pos;
+        while (off > n / 2) off -= n;
+        while (off < -n / 2) off += n;
+        const a = Math.abs(off);
+        el.style.transform = `translate(-50%,-50%) translateX(${off * spacing}px) scale(${Math.max(0.55, 1.08 - a * 0.16)})`;
+        el.style.opacity = String(a > 2.6 ? 0 : 1 - a * 0.26);
+        el.style.zIndex = String(100 - Math.round(a));
+        el.style.filter = a < 0.5 ? "none" : `blur(${a * 0.7}px)`;
+        el.classList.toggle("is-active", i === ai);
+        dots[i]?.classList.toggle("active", i === ai);
+      });
+    }
+
+    function restart() {
+      if (crTimer) clearInterval(crTimer);
+      crTimer = window.setInterval(() => { pos = Math.round(pos) + 1; layout(); }, 1500);
+    }
+    function stop() { if (crTimer) { clearInterval(crTimer); crTimer = undefined; } }
+
+    document.getElementById("cr-prev")?.addEventListener("click", () => { pos = Math.round(pos) - 1; layout(); restart(); });
+    document.getElementById("cr-next")?.addEventListener("click", () => { pos = Math.round(pos) + 1; layout(); restart(); });
+
+    // open the matching fragrance in the catalogue
+    function openFromCarousel(id: string | null) {
+      if (!id) return;
+      const btn = document.querySelector<HTMLElement>(`#grid [data-open-drawer][data-id="${id}"]`);
+      if (!btn) return;
+      const wrap = btn.closest(".card-wrap");
+      wrap?.classList.remove("hidden-card");
+      wrap?.scrollIntoView({ behavior: "smooth", block: "center" });
+      openDrawer(btn);
+    }
+
+    // drag to slide (window-level so native clicks on bottles still fire)
+    let dragging = false, startX = 0, startY = 0, startPos = 0, moved = 0, spc = 120;
+    carouselEl.addEventListener("pointerdown", (e) => {
+      dragging = true; startX = e.clientX; startY = e.clientY; startPos = pos; moved = 0; spc = spacingOf();
+      stop();
+      carouselEl.classList.add("dragging");
+    });
+    window.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      moved = Math.max(moved, Math.abs(dx), Math.abs(e.clientY - startY));
+      pos = startPos - dx / spc;
+      layout();
+    });
+    function endDrag(e?: PointerEvent) {
+      if (!dragging) return;
+      dragging = false;
+      carouselEl.classList.remove("dragging");
+      // a tap (no real drag) → open that bottle's details
+      if (moved <= 6 && e) {
+        const el = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest(".cr-item");
+        if (el) openFromCarousel(el.getAttribute("data-id"));
+      }
+      pos = Math.round(pos);
+      layout();
+      restart();
+    }
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", () => endDrag());
+
+    // also handle plain clicks (mouse) as a fallback
+    crItems.forEach((el) => {
+      el.addEventListener("click", () => {
+        if (moved > 6) return;
+        openFromCarousel(el.getAttribute("data-id"));
+      });
+    });
+
+    carouselEl.addEventListener("pointerenter", () => { if (!dragging) stop(); });
+    carouselEl.addEventListener("pointerleave", () => { if (!dragging) restart(); });
+    window.addEventListener("resize", layout);
+    layout();
+    restart();
+  }
+
+  // ─── Filtering ──────────────────────────────────────────────────────────
+  const cards = Array.from(document.querySelectorAll<HTMLElement>(".card-wrap"));
+  const countEl = document.getElementById("result-count");
+  const emptyEl = document.getElementById("empty-state");
+  const total = cards.length;
+
+  const active = {
+    mood: new Set<string>(),
+    price: new Set<string>(),
+    house: new Set<string>(),
+    family: new Set<string>(),
+  };
+
+  function applyFilters() {
+    let shown = 0;
+    for (const card of cards) {
+      const season = card.dataset.season || "";
+      const times = (card.dataset.times || "").split(" ");
+      const price = card.dataset.price || "";
+      const house = card.dataset.house || "";
+      const families = (card.dataset.families || "").split(" ");
+
+      const okMood = active.mood.size === 0 ||
+        [...active.mood].some((m) => season === m || times.includes(m));
+      const okPrice = active.price.size === 0 || active.price.has(price);
+      const okHouse = active.house.size === 0 || active.house.has(house);
+      const okFamily = active.family.size === 0 ||
+        families.some((fam) => active.family.has(fam));
+
+      const visible = okMood && okPrice && okHouse && okFamily;
+      card.classList.toggle("hidden-card", !visible);
+      if (visible) shown++;
+    }
+    if (countEl) countEl.textContent = `Showing ${shown} of ${total}`;
+    if (emptyEl) emptyEl.classList.toggle("hidden", shown !== 0);
+  }
+
+  // sidebar chips
+  document.querySelectorAll<HTMLButtonElement>(".chip[data-group]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const group = chip.dataset.group as "price" | "house" | "family";
+      const value = chip.dataset.value || "";
+      const set = active[group];
+      if (set.has(value)) { set.delete(value); chip.setAttribute("aria-pressed", "false"); }
+      else { set.add(value); chip.setAttribute("aria-pressed", "true"); }
+      applyFilters();
+    });
+  });
+
+  // seasonal category cards
+  document.querySelectorAll<HTMLButtonElement>(".catcard[data-mood]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const value = btn.dataset.mood || "";
+      if (active.mood.has(value)) { active.mood.delete(value); btn.setAttribute("aria-pressed", "false"); }
+      else { active.mood.add(value); btn.setAttribute("aria-pressed", "true"); }
+      applyFilters();
+    });
+  });
+
+  document.getElementById("reset-filters")?.addEventListener("click", () => {
+    active.mood.clear(); active.price.clear(); active.house.clear(); active.family.clear();
+    document.querySelectorAll("[aria-pressed]").forEach((c) => {
+      if (c.id !== "theme-toggle") c.setAttribute("aria-pressed", "false");
+    });
+    applyFilters();
+  });
+
+  // ─── Drawer ─────────────────────────────────────────────────────────────
+  const drawer = document.getElementById("drawer");
+  const dBottle = document.getElementById("d-bottle");
+  const dGlow = document.getElementById("d-glow");
+
+  const tierIcon: Record<string, string> = {
+    Top: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6"/><path d="M12 9c-3 0-5 2-5 5a5 5 0 0 0 10 0c0-3-2-5-5-5Z"/><path d="M9 4c1.5.5 3 .5 3 2"/></svg>`,
+    Heart: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M12 9.5c0-2.5 1-4.5 0-6.5-1 2 0 4 0 6.5Z"/><path d="M12 14.5c0 2.5-1 4.5 0 6.5 1-2 0-4 0-6.5Z"/><path d="M9.5 12c-2.5 0-4.5-1-6.5 0 2 1 4 0 6.5 0Z"/><path d="M14.5 12c2.5 0 4.5 1 6.5 0-2-1-4 0-6.5 0Z"/></svg>`,
+    Base: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 3 9l9 5 9-5-9-5Z"/><path d="M3 14l9 5 9-5"/></svg>`,
+  };
+
+  function chipEl(text: string) {
+    const s = document.createElement("span");
+    s.className = "rounded-full border px-3 py-1 text-xs capitalize";
+    s.style.borderColor = "var(--border-strong)";
+    s.style.color = "var(--text-muted)";
+    s.textContent = text;
+    return s;
+  }
+
+  function noteRow(tier: string, notes: string) {
+    if (!notes) return "";
+    return `<div class="flex items-start gap-2.5">
+      <span class="mt-0.5 shrink-0" style="color:var(--accent)">${tierIcon[tier] || ""}</span>
+      <div><span class="mr-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em]" style="color:var(--text-faint)">${tier}</span><span class="text-sm" style="color:var(--text-muted)">${notes}</span></div>
+    </div>`;
+  }
+
+  function bottleSVG(from: string, to: string, ini: string) {
+    return `<svg viewBox="0 0 200 280" class="h-full w-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${from}"/><stop offset="100%" stop-color="${to}"/></linearGradient><linearGradient id="ds" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.55"/><stop offset="35%" stop-color="#fff" stop-opacity="0.08"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="82" y="14" width="36" height="34" rx="4" fill="${to}"/><rect x="86" y="46" width="28" height="14" rx="2" fill="${to}" opacity="0.9"/><rect x="48" y="58" width="104" height="200" rx="18" fill="url(#dg)"/><rect x="58" y="68" width="30" height="180" rx="14" fill="url(#ds)"/><text x="100" y="172" text-anchor="middle" font-family="Fraunces, serif" font-size="34" font-weight="500" fill="#fff" fill-opacity="0.92">${ini}</text></svg>`;
+  }
+
+  function openDrawer(btn: HTMLElement) {
+    const d = btn.dataset;
+    const set = (id: string, val: string) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set("d-meta", `${d.house || ""} · ${d.price || ""}`);
+    set("d-brand", d.brand || "");
+    set("d-name", d.name || "");
+    set("d-desc", d.desc || "");
+
+    const from = d.from || "#888", to = d.to || "#444";
+    if (dBottle) dBottle.innerHTML = bottleSVG(from, to, d.initials || "");
+    if (dGlow) dGlow.style.background = `radial-gradient(circle, ${from}, transparent 70%)`;
+
+    const tags = document.getElementById("d-tags");
+    if (tags) {
+      tags.innerHTML = "";
+      tags.appendChild(chipEl(d.season || ""));
+      (d.times || "").split(" ").filter(Boolean).forEach((t) => tags.appendChild(chipEl(t)));
+      (d.families || "").split(", ").filter(Boolean).forEach((f) => tags.appendChild(chipEl(f)));
+    }
+
+    const notes = document.getElementById("d-notes");
+    if (notes) {
+      notes.innerHTML = noteRow("Top", d.top || "") + noteRow("Heart", d.mid || "") + noteRow("Base", d.base || "");
+    }
+
+    const aar = document.getElementById("d-aar") as HTMLAnchorElement | null;
+    const pg = document.getElementById("d-pg") as HTMLAnchorElement | null;
+    if (aar) aar.href = d.aar || "#";
+    if (pg) pg.href = d.pg || "#";
+
+    drawer?.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDrawer() {
+    drawer?.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-open-drawer]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("[data-stop]")) return;
+      openDrawer(btn);
+    });
+  });
+  document.querySelectorAll("[data-close-drawer]").forEach((el) => el.addEventListener("click", closeDrawer));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+  // ─── Newsletter (demo) ──────────────────────────────────────────────────
+  document.getElementById("newsletter")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const btn = form.querySelector("button");
+    if (btn) btn.textContent = "You're on the list ✓";
+    form.reset();
+  });
+</script>
