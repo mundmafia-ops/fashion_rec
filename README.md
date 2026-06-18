@@ -1,6 +1,6 @@
 # fashion_rec
 
-A fashion website for the best deals, current trends, and price tracking — built with Astro 5 + Tailwind v4.
+A fashion website for the best deals, current trends, and price tracking — built with Astro 5 + Tailwind v4. Deals, trends, and price history in one aesthetic place.
 
 ## Scripts
 
