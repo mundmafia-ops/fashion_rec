@@ -1,7 +1,7 @@
 ---
 import NoteRow from "@/components/NoteRow.astro";
 import { HOUSE_LABELS, TIER_LABELS, type Fragrance } from "@/lib/types";
-import { shopLinks, initials, fragranceImage } from "@/data/fragrances";
+import { shopLinks, initials, fragranceImage, genderOf } from "@/data/fragrances";
 
 interface Props {
   f: Fragrance;
@@ -11,6 +11,8 @@ const { f, index } = Astro.props;
 const links = shopLinks(f);
 const ini = initials(f.brand);
 const img = fragranceImage(f.id);
+const gender = genderOf(f);
+const genderLabel = { men: "Men", women: "Women", unisex: "Unisex" }[gender];
 const delay = (index % 4) * 80;
 ---
 
@@ -20,6 +22,7 @@ const delay = (index % 4) * 80;
   data-times={f.times.join(" ")}
   data-house={f.houseType}
   data-price={f.priceTier}
+  data-gender={genderOf(f)}
   data-families={f.families.join(" ")}
   data-reveal
   style={`--reveal-delay:${delay}ms`}
@@ -63,6 +66,13 @@ const delay = (index % 4) * 80;
           class="h-full w-auto max-w-[70%] object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.45)]"
         />
       </div>
+      <!-- gender corner tag -->
+      <span
+        class="absolute left-0 top-0 rounded-full border px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.16em]"
+        style="border-color:var(--border);color:var(--text-faint);background:var(--surface)"
+      >
+        {genderLabel}
+      </span>
       <!-- season / tier corner tag -->
       <span
         class="absolute right-0 top-0 rounded-full border px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.16em]"

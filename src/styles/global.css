@@ -534,6 +534,31 @@ body {
   transform: translateX(28px);
 }
 
+/* ─── Carousel gender toggle (plain caps text, no box) ─────────────────── */
+.gender-link {
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  position: relative;
+  padding-bottom: 3px;
+  transition: color 0.35s ease;
+}
+.gender-link:hover {
+  color: var(--text-muted);
+}
+.gender-link[aria-pressed="true"] {
+  color: var(--accent);
+}
+.gender-link[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: var(--accent);
+}
+
 /* ─── Top-nav buttons ──────────────────────────────────────────────────── */
 .nav-link {
   background: transparent;

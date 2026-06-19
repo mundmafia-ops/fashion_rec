@@ -4,6 +4,9 @@ export type Season = "summer" | "winter";
 export type TimeOfDay = "day" | "night";
 export type HouseType = "niche" | "designer";
 export type PriceTier = "premium" | "budget";
+export type Gender = "men" | "women" | "unisex";
+
+export const GENDERS: Gender[] = ["men", "women", "unisex"];
 
 export type Family =
   | "Citrus"
@@ -44,6 +47,8 @@ export type Fragrance = {
   times: TimeOfDay[];
   houseType: HouseType;
   priceTier: PriceTier;
+  /** Marketed gender. Existing men's-leaning entries default to "men". */
+  gender?: Gender;
   families: Family[];
   notes: NotePyramid;
   /** Two-stop gradient [from, to] for the bottle illustration. */

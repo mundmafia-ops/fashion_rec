@@ -1,6 +1,7 @@
-import type { Fragrance, ShopLinks } from "@/lib/types";
+import type { Fragrance, Gender, ShopLinks } from "@/lib/types";
+import { extraFragrances } from "@/data/fragrances-extra";
 
-export const fragrances: Fragrance[] = [
+const baseFragrances: Fragrance[] = [
   // ─────────────── NICHE HOUSES · PREMIUM ───────────────
   {
     id: "creed-virgin-island-water",
@@ -707,6 +708,14 @@ export const fragrances: Fragrance[] = [
     accent: ["#C98A5A", "#7C3238"],
   },
 ];
+
+/** Full catalogue: original men's-leaning core + the expanded edit. */
+export const fragrances: Fragrance[] = [...baseFragrances, ...extraFragrances];
+
+/** Marketed gender, defaulting legacy (untagged) entries to men's. */
+export function genderOf(f: Fragrance): Gender {
+  return f.gender ?? "men";
+}
 
 /** Build affiliate/search links to the two partner stores for a fragrance. */
 export function shopLinks(f: Fragrance): ShopLinks {
