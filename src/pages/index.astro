@@ -1,8 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import FragranceCard from "@/components/FragranceCard.astro";
-import Bottle from "@/components/Bottle.astro";
-import { fragrances, getFragrance, initials } from "@/data/fragrances";
+import { fragrances, getFragrance, fragranceImage } from "@/data/fragrances";
 import { FAMILIES } from "@/lib/types";
 
 const total = fragrances.length;
@@ -66,6 +65,20 @@ const bigNav = [
     n: count((f) => f.times.includes("night")),
   },
 ];
+
+// Lightweight fragrance payload for the client-side quiz scoring engine.
+const quizFragrances = fragrances.map((f) => ({
+  id: f.id,
+  brand: f.brand,
+  name: f.name,
+  image: fragranceImage(f.id),
+  season: f.season,
+  times: f.times,
+  houseType: f.houseType,
+  priceTier: f.priceTier,
+  families: f.families,
+  accent: f.accent,
+}));
 ---
 
 <Layout>
@@ -75,10 +88,15 @@ const bigNav = [
       <a href="#top" class="font-display text-xl tracking-tight" style="letter-spacing:0.04em">
         FRAGRANDISE
       </a>
-      <nav class="hidden items-center gap-10 md:flex">
-        <a href="#catalogue" class="link-underline text-xs uppercase tracking-[0.2em]" style="color:var(--text-muted)">Categories</a>
-        <a href="#about" class="link-underline text-xs uppercase tracking-[0.2em]" style="color:var(--text-muted)">About</a>
-        <a href="#footer" class="link-underline text-xs uppercase tracking-[0.2em]" style="color:var(--text-muted)">Affiliates</a>
+      <nav class="hidden items-center gap-8 md:flex lg:gap-10">
+        <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="summer" style="color:var(--text-muted)">Summer</button>
+        <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="winter" style="color:var(--text-muted)">Winter</button>
+        <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="day" style="color:var(--text-muted)">Day</button>
+        <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="night" style="color:var(--text-muted)">Night</button>
+        <button id="open-dictionary" class="nav-dict inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>
+          Dictionary
+        </button>
       </nav>
       <div class="flex items-center gap-4">
         <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode" title="Toggle theme">
@@ -112,10 +130,22 @@ const bigNav = [
           <p class="mt-8 max-w-md text-base leading-relaxed fade-in" style="--d:680ms;color:var(--text-muted)">
             A curated catalogue of {total} fragrances — niche powerhouses to budget gems — sorted by season, time, house, and scent profile.
           </p>
-          <a href="#catalogue" class="btn-accent mt-7 inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs uppercase tracking-[0.2em] fade-in" style="--d:760ms">
-            Explore the Edit
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
-          </a>
+          <div class="mt-9 flex w-full max-w-md flex-col items-stretch gap-3.5 fade-in" style="--d:760ms">
+            <span class="quiz-btn-wrap">
+              <span class="quiz-aura" aria-hidden="true"></span>
+              <button id="open-quiz" type="button" class="btn-accent btn-hero-primary inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-full px-10 py-5 text-sm font-semibold uppercase tracking-[0.22em] sm:text-base">
+                <span class="btn-paint" aria-hidden="true"></span>
+                <span class="btn-label relative z-[1] inline-flex items-center justify-center gap-3">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3Z"></path><path d="M19 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z"></path></svg>
+                  Find My Signature Scent
+                </span>
+              </button>
+            </span>
+            <a href="#catalogue" class="btn-ghost inline-flex w-full items-center justify-center gap-2 rounded-full px-7 py-3 text-xs uppercase tracking-[0.2em]">
+              Explore the Catalog
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
+            </a>
+          </div>
         </div>
 
         <!-- right: the bottle carousel (in place of the old glow blob) -->
@@ -125,12 +155,11 @@ const bigNav = [
               carousel.map((c, i) => (
                 <figure class="cr-item" data-i={i} data-id={c.f.id} data-group={c.group}>
                   <div class="cr-aura" data-temp={c.temp} />
-                  <div class="cr-float relative h-60 sm:h-64" style="aspect-ratio:200/280">
-                    <Bottle
-                      from={c.f.accent[0]}
-                      to={c.f.accent[1]}
-                      initials={initials(c.f.brand)}
-                      id={`cr-${c.f.id}`}
+                  <div class="cr-float relative flex h-60 items-center justify-center sm:h-64">
+                    <img
+                      src={fragranceImage(c.f.id)}
+                      alt={`${c.f.brand} ${c.f.name} bottle`}
+                      class="h-full w-auto object-contain drop-shadow-[0_24px_38px_rgba(0,0,0,0.5)]"
                     />
                   </div>
                   <figcaption class="cr-cap">
@@ -319,7 +348,7 @@ const bigNav = [
       </div>
       <div id="d-stage" class="relative mx-7 mt-4 flex h-72 items-center justify-center rounded-2xl" style="background:var(--surface)">
         <div id="d-glow" class="absolute inset-0 m-auto h-48 w-48 rounded-full" style="filter:blur(48px);opacity:0.4"></div>
-        <div id="d-bottle" class="relative h-60" style="aspect-ratio:200/280"></div>
+        <div id="d-bottle" class="relative flex h-60 items-center justify-center"></div>
       </div>
       <div class="px-7 py-7">
         <h3 class="text-3xl font-bold tracking-tight" id="d-brand"></h3>
@@ -345,6 +374,69 @@ const bigNav = [
       </div>
     </aside>
   </div>
+
+  <!-- ───────────────────────── Dictionary drawer ───────────────────────── -->
+  <div id="dict-drawer" class="fixed inset-0 z-50">
+    <div class="scrim absolute inset-0" style="background:rgba(0,0,0,0.6)" data-close-dict></div>
+    <aside class="dict-panel absolute left-0 top-0 flex h-full w-full max-w-md flex-col overflow-y-auto sm:max-w-lg" style="background:var(--bg-soft)">
+      <div class="flex items-center justify-between px-7 pt-7">
+        <div>
+          <p class="eyebrow">The Fragrance</p>
+          <h3 class="font-display text-3xl font-light tracking-tight">Dictionary</h3>
+        </div>
+        <button data-close-dict aria-label="Close" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <p class="px-7 pt-4 text-sm" style="color:var(--text-muted)">New to fragrance? Here's the lingo, in plain English.</p>
+      <div class="mt-4 flex flex-col gap-3 px-7 pb-10">
+        {[
+          { term: "Sillage", def: "The invisible scent trail you leave behind when you walk away." },
+          { term: "Projection", def: "How far the scent pushes off your skin and into the room." },
+          { term: "Designer", def: "Perfumes made by mainstream fashion / clothing houses (e.g. Dior, Chanel, Versace)." },
+          { term: "Niche", def: "Perfumes made by specialised houses that only create fragrances (e.g. Creed, Xerjoff, Amouage)." },
+          { term: "Blind Buy", def: "Buying a full bottle of perfume without ever smelling it first." },
+          { term: "Olfactory Notes", def: "The ingredients that make up the scent. Top = first 15 minutes · Middle / Heart = the core scent · Base = the heavy notes that last all day." },
+        ].map((d) => (
+          <div class="dict-card rounded-2xl border p-5" style="border-color:var(--border);background:var(--surface)">
+            <p class="font-display text-xl tracking-tight" style="color:var(--accent)">{d.term}</p>
+            <p class="mt-1.5 text-sm leading-relaxed" style="color:var(--text-muted)">{d.def}</p>
+          </div>
+        ))}
+      </div>
+    </aside>
+  </div>
+
+  <!-- ───────────────────────── Quiz overlay ───────────────────────── -->
+  <div id="quiz" class="fixed inset-0 z-[60]">
+    <div class="quiz-scrim absolute inset-0" style="background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(8px)"></div>
+    <div class="quiz-shell absolute inset-0 flex flex-col">
+      <!-- top bar -->
+      <div class="mx-auto flex w-full max-w-3xl items-center justify-between px-6 pt-7 md:px-10">
+        <span class="font-display text-lg tracking-tight">Signature Scent Finder</span>
+        <button id="quiz-close" aria-label="Close quiz" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <!-- progress -->
+      <div class="mx-auto mt-5 w-full max-w-3xl px-6 md:px-10">
+        <div class="flex items-center justify-between text-[0.62rem] uppercase tracking-[0.2em]" style="color:var(--text-faint)">
+          <span id="quiz-phase">The Canvas</span>
+          <span id="quiz-counter">1 / 20</span>
+        </div>
+        <div class="mt-2 h-1 w-full overflow-hidden rounded-full" style="background:var(--border)">
+          <div id="quiz-progress" class="h-full rounded-full" style="width:5%;background:var(--accent);transition:width .5s cubic-bezier(.16,1,.3,1)"></div>
+        </div>
+      </div>
+
+      <!-- question stage -->
+      <div class="quiz-scroll flex-1 overflow-y-auto">
+        <div id="quiz-stage" class="mx-auto flex w-full max-w-3xl flex-col px-6 py-10 md:px-10"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="quiz-frag-data" set:html={JSON.stringify(quizFragrances)}></script>
 </Layout>
 
 <script>
@@ -414,13 +506,14 @@ const bigNav = [
     const n = crItems.length;
     let pos = 0; // fractional position; round() = active bottle
     let crTimer: number | undefined;
+    let crPause: number | undefined;
 
     const dotsWrap = document.getElementById("cr-dots");
     crItems.forEach((_, i) => {
       const d = document.createElement("button");
       d.className = "cr-dot";
       d.setAttribute("aria-label", `Go to bottle ${i + 1}`);
-      d.addEventListener("click", () => { pos = i; layout(); restart(); });
+      d.addEventListener("click", () => { pos = i; layout(); restart(4000); });
       dotsWrap?.appendChild(d);
     });
     const dots = Array.from(dotsWrap?.children || []) as HTMLElement[];
@@ -448,14 +541,22 @@ const bigNav = [
       });
     }
 
-    function restart() {
-      if (crTimer) clearInterval(crTimer);
-      crTimer = window.setInterval(() => { pos = Math.round(pos) + 1; layout(); }, 1500);
+    // restart(delay): wait `delay` ms (e.g. after a manual nudge) before
+    // resuming the 1.5s auto-rotation, so user clicks don't fight the cycle.
+    function restart(delay = 0) {
+      if (crTimer) { clearInterval(crTimer); crTimer = undefined; }
+      if (crPause) { clearTimeout(crPause); crPause = undefined; }
+      const begin = () => { crTimer = window.setInterval(() => { pos = Math.round(pos) + 1; layout(); }, 1500); };
+      if (delay > 0) crPause = window.setTimeout(begin, delay);
+      else begin();
     }
-    function stop() { if (crTimer) { clearInterval(crTimer); crTimer = undefined; } }
+    function stop() {
+      if (crTimer) { clearInterval(crTimer); crTimer = undefined; }
+      if (crPause) { clearTimeout(crPause); crPause = undefined; }
+    }
 
-    document.getElementById("cr-prev")?.addEventListener("click", () => { pos = Math.round(pos) - 1; layout(); restart(); });
-    document.getElementById("cr-next")?.addEventListener("click", () => { pos = Math.round(pos) + 1; layout(); restart(); });
+    document.getElementById("cr-prev")?.addEventListener("click", () => { pos = Math.round(pos) - 1; layout(); restart(4000); });
+    document.getElementById("cr-next")?.addEventListener("click", () => { pos = Math.round(pos) + 1; layout(); restart(4000); });
 
     // open the matching fragrance in the catalogue
     function openFromCarousel(id: string | null) {
@@ -493,7 +594,7 @@ const bigNav = [
       }
       pos = Math.round(pos);
       layout();
-      restart();
+      restart(4000);
     }
     window.addEventListener("pointerup", endDrag);
     window.addEventListener("pointercancel", () => endDrag());
@@ -577,6 +678,7 @@ const bigNav = [
     document.querySelectorAll("[aria-pressed]").forEach((c) => {
       if (c.id !== "theme-toggle") c.setAttribute("aria-pressed", "false");
     });
+    document.querySelectorAll(".nav-link[data-nav-mood]").forEach((n) => n.classList.remove("nav-active"));
     applyFilters();
   });
 
@@ -621,7 +723,12 @@ const bigNav = [
     set("d-desc", d.desc || "");
 
     const from = d.from || "#888", to = d.to || "#444";
-    if (dBottle) dBottle.innerHTML = bottleSVG(from, to, d.initials || "");
+    if (dBottle) {
+      const src = d.image || "";
+      dBottle.innerHTML = src
+        ? `<img src="${src}" alt="${(d.brand || "") + " " + (d.name || "")} bottle" class="h-full w-auto object-contain drop-shadow-[0_24px_40px_rgba(0,0,0,0.5)]" />`
+        : bottleSVG(from, to, d.initials || "");
+    }
     if (dGlow) dGlow.style.background = `radial-gradient(circle, ${from}, transparent 70%)`;
 
     const tags = document.getElementById("d-tags");
@@ -667,5 +774,367 @@ const bigNav = [
     const btn = form.querySelector("button");
     if (btn) btn.textContent = "You're on the list ✓";
     form.reset();
+  });
+
+  // ─── Dictionary drawer ──────────────────────────────────────────────────
+  const dict = document.getElementById("dict-drawer");
+  function openDict() { dict?.classList.add("open"); document.body.style.overflow = "hidden"; }
+  function closeDict() { dict?.classList.remove("open"); document.body.style.overflow = ""; }
+  document.getElementById("open-dictionary")?.addEventListener("click", openDict);
+  document.querySelectorAll("[data-close-dict]").forEach((el) => el.addEventListener("click", closeDict));
+
+  // ─── Nav category links → exclusive mood filter (one at a time) ─────────
+  document.querySelectorAll<HTMLButtonElement>(".nav-link[data-nav-mood]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const mood = btn.dataset.navMood || "";
+      const alreadyOnly = active.mood.size === 1 && active.mood.has(mood);
+      active.mood.clear();
+      if (!alreadyOnly) active.mood.add(mood);
+      // reflect the single active mood on the seasonal category cards + nav
+      document.querySelectorAll<HTMLButtonElement>(".catcard[data-mood]").forEach((c) => {
+        c.setAttribute("aria-pressed", String(active.mood.has(c.dataset.mood || "")));
+      });
+      document.querySelectorAll<HTMLButtonElement>(".nav-link[data-nav-mood]").forEach((n) => {
+        n.classList.toggle("nav-active", active.mood.has(n.dataset.navMood || ""));
+      });
+      applyFilters();
+      document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  // ─── Signature Scent quiz — deterministic scoring engine ────────────────
+  type QFrag = {
+    id: string; brand: string; name: string; image: string;
+    season: "summer" | "winter"; times: ("day" | "night")[];
+    houseType: "niche" | "designer"; priceTier: "premium" | "budget";
+    families: string[]; accent: [string, string];
+  };
+  type Eff = Record<string, number>;
+  type QOption = { label: string; effects: Eff };
+  type Question = { phase: string; q: string; options: QOption[] };
+
+  let quizFrags: QFrag[] = [];
+  try { quizFrags = JSON.parse(document.getElementById("quiz-frag-data")?.textContent || "[]"); } catch (e) {}
+
+  // Effect keys: summer/winter/day/night/affordable/expensive/designer/niche,
+  // "p:<Profile>" for olfactory profiles, "proj:Low|Moderate|High" for projection.
+  const QUESTIONS: Question[] = [
+    // ── Phase 1 · The Canvas ──
+    { phase: "The Canvas", q: "How would you describe your ideal weekend escape?", options: [
+      { label: "A sun-drenched coastline or a vibrant open-air café.", effects: { summer: 2, day: 2 } },
+      { label: "Cozying up in a wooden cabin or a dimly lit lounge.", effects: { winter: 2, night: 2 } },
+      { label: "A brisk morning walk through a botanical garden.", effects: { summer: 2, day: 2 } },
+      { label: "A midnight stroll through a bustling, historic city.", effects: { winter: 2, night: 2 } },
+    ]},
+    { phase: "The Canvas", q: "What season are you shopping for right now?", options: [
+      { label: "Crisp, hot, or humid.", effects: { summer: 3 } },
+      { label: "Cool, freezing, or sharp.", effects: { winter: 3 } },
+      { label: "I need a versatile scent that survives all seasons.", effects: { summer: 1, winter: 1 } },
+    ]},
+    { phase: "The Canvas", q: "When do you envision wearing this fragrance the most?", options: [
+      { label: "Mornings & afternoons — work, brunch, casual outings.", effects: { day: 3 } },
+      { label: "Evenings & late nights — dates, events, nightlife.", effects: { night: 3 } },
+      { label: "From sunrise to sunset; a true signature scent.", effects: { day: 1, night: 1 } },
+    ]},
+    { phase: "The Canvas", q: "What kind of setting do you prefer right now?", options: [
+      { label: "Bright sunny days, light clothes, and fresh air.", effects: { summer: 2, day: 2 } },
+      { label: "Cozy nights, warm jackets, dim lighting, cool air.", effects: { winter: 2, night: 2 } },
+    ]},
+    // ── Phase 2 · The Investment ──
+    { phase: "The Investment", q: "What is your budget for a new perfume?", options: [
+      { label: "Budget-friendly — smells expensive, easy on my wallet.", effects: { affordable: 3 } },
+      { label: "Premium / luxury — I'll pay for a top-tier bottle.", effects: { expensive: 3 } },
+    ]},
+    { phase: "The Investment", q: "Which answer makes you feel best when asked what you're wearing?", options: [
+      { label: "A recognisable fashion house (Versace, Tom Ford, LV).", effects: { designer: 3 } },
+      { label: "An exclusive, artistic house few people know (Xerjoff, Nishane, Amouage).", effects: { niche: 3 } },
+      { label: "I don't care about the name — only that it smells incredible.", effects: { designer: 1, niche: 1 } },
+    ]},
+    { phase: "The Investment", q: "How do you feel about Middle-Eastern alternative houses (Lattafa, Afnan)?", options: [
+      { label: "Love them — incredible value and viral power for the price.", effects: { affordable: 2, designer: 1 } },
+      { label: "I prefer classic European / Western designer or niche.", effects: { expensive: 1, niche: 1 } },
+    ]},
+    // ── Phase 3 · The Presence ──
+    { phase: "The Presence", q: "What's your ultimate goal when entering a room?", options: [
+      { label: "A strong trail — people should smell me after I pass.", effects: { "proj:High": 3 } },
+      { label: "A quiet, intimate presence — only close hugs notice it.", effects: { "proj:Low": 3 } },
+      { label: "A solid arms-length cloud that commands respect.", effects: { "proj:Moderate": 3 } },
+    ]},
+    { phase: "The Presence", q: "How long do you need this fragrance to last?", options: [
+      { label: "Workhorse longevity (8+ hrs) — survives a full day or night.", effects: { "proj:High": 2, winter: 1, "p:Gourmand": 1 } },
+      { label: "Casual longevity (4–6 hrs) — I don't mind reapplying.", effects: { "proj:Low": 2, summer: 1, "p:Fresh": 1 } },
+    ]},
+    { phase: "The Presence", q: "How do you react to very heavy, sweet, or smoky scents?", options: [
+      { label: "I love them — the louder and more complex, the better.", effects: { winter: 2, "p:Gourmand": 1, "p:Woody": 1 } },
+      { label: "They give me a headache — I want clean, airy, refreshing.", effects: { summer: 2, "p:Fresh": 1, "p:Citrus": 1 } },
+    ]},
+    // ── Phase 4 · Olfactory Archetypes ──
+    { phase: "Olfactory Archetypes", q: "Which drink are you ordering at a luxury lounge?", options: [
+      { label: "An icy mojito or G&T with fresh lime and crushed mint.", effects: { "p:Citrus": 2, "p:Fresh": 1 } },
+      { label: "A warm espresso or a glass of aged cognac / whiskey.", effects: { "p:Gourmand": 2, "p:Sweet": 1 } },
+      { label: "A cold, sophisticated iced oolong or Earl Grey.", effects: { "p:Fresh": 1, "p:Spicy": 1 } },
+    ]},
+    { phase: "Olfactory Archetypes", q: "Which environment feels most comforting to your senses?", options: [
+      { label: "The sharp, salty breeze of the open ocean.", effects: { "p:Aquatic": 2, "p:Fresh": 1 } },
+      { label: "An old library of leather-bound books and polished wood.", effects: { "p:Leather": 2, "p:Woody": 1 } },
+      { label: "A spice market of cinnamon, cardamom, and vanilla pods.", effects: { "p:Spicy": 2, "p:Sweet": 1, "p:Gourmand": 1 } },
+    ]},
+    { phase: "Olfactory Archetypes", q: "If your style were a flavour profile, it would be:", options: [
+      { label: "Tart, zesty, sharp, and energising.", effects: { "p:Citrus": 1, "p:Fresh": 2 } },
+      { label: "Sweet, velvety, edible, and rich.", effects: { "p:Gourmand": 2, "p:Sweet": 1 } },
+      { label: "Dry, earthy, smoky, and sophisticated.", effects: { "p:Woody": 2, "p:Spicy": 1 } },
+    ]},
+    { phase: "Olfactory Archetypes", q: "How do you feel about florals (rose, neroli, iris) in a scent?", options: [
+      { label: "Keep it clean and soapy, like fresh laundry.", effects: { "p:Floral": 1, "p:Fresh": 1 } },
+      { label: "I like dark, rich florals — syrupy rose with oud or amber.", effects: { "p:Floral": 2, "p:Woody": 1, "p:Sweet": 1 } },
+      { label: "I prefer to avoid distinct floral notes entirely.", effects: { "p:Woody": 1 } },
+    ]},
+    // ── Phase 5 · Fashion & Persona ──
+    { phase: "Fashion & Persona", q: "What is your daily uniform or go-to style?", options: [
+      { label: "Oversized streetwear, clean sneakers, graphic elements.", effects: { "p:Sweet": 1, "proj:High": 1 } },
+      { label: "Sharp tailoring, structured blazers, loafers, minimal jewelry.", effects: { "p:Woody": 1, "p:Fresh": 1 } },
+      { label: "Vintage jackets, distressed leather, dark edgy silhouettes.", effects: { "p:Leather": 1, "p:Woody": 1, winter: 1 } },
+    ]},
+    { phase: "Fashion & Persona", q: "What reaction do you want from your fragrance?", options: [
+      { label: "“Wow, you smell incredibly clean and fresh.”", effects: { summer: 1, day: 1, "p:Fresh": 1 } },
+      { label: "“You smell mysterious, rich, and seductive.”", effects: { winter: 1, night: 1, "p:Spicy": 1 } },
+      { label: "“That's the most unique thing I've ever smelled.”", effects: { niche: 2 } },
+    ]},
+    { phase: "Fashion & Persona", q: "Select the texture that appeals to you most:", options: [
+      { label: "Crisp, breathable linen or raw cotton.", effects: { "p:Fresh": 1, "p:Aquatic": 1 } },
+      { label: "Heavy warm suede or smooth distressed leather.", effects: { "p:Leather": 2, "p:Woody": 1 } },
+      { label: "Soft plush velvet or thick silk.", effects: { "p:Sweet": 1, "p:Gourmand": 1 } },
+    ]},
+    { phase: "Fashion & Persona", q: "How do you want to feel when you spray this on?", options: [
+      { label: "Energised, refreshed, and hyper-focused.", effects: { "p:Citrus": 1, "p:Fresh": 1 } },
+      { label: "Confident, commanding, and powerful.", effects: { "p:Woody": 1, "p:Leather": 1, "proj:High": 1 } },
+      { label: "Sensual, mysterious, and alluring.", effects: { "p:Sweet": 1, "p:Spicy": 1 } },
+    ]},
+    { phase: "Fashion & Persona", q: "Which design element catches your eye first?", options: [
+      { label: "Bold industrial structures and sharp architectural lines.", effects: { niche: 1, "p:Woody": 1 } },
+      { label: "Fluid organic shapes and bright, popping colours.", effects: { designer: 1, "p:Fresh": 1 } },
+    ]},
+    { phase: "Fashion & Persona", q: "One word to define your personal brand:", options: [
+      { label: "Effortless", effects: { "p:Fresh": 1, designer: 1 } },
+      { label: "Commanding", effects: { "p:Woody": 1, "p:Leather": 1 } },
+      { label: "Unconventional", effects: { niche: 2 } },
+      { label: "Luxurious", effects: { expensive: 2 } },
+    ]},
+  ];
+
+  const quizEl = document.getElementById("quiz");
+  const stageEl = document.getElementById("quiz-stage");
+  const phaseEl = document.getElementById("quiz-phase");
+  const counterEl = document.getElementById("quiz-counter");
+  const progressEl = document.getElementById("quiz-progress");
+  const KEYS = ["A", "B", "C", "D", "E"];
+  const answers: number[] = [];
+  let qi = 0;
+
+  type ScoreState = {
+    summer: number; winter: number; day: number; night: number;
+    affordable: number; expensive: number; designer: number; niche: number;
+    profiles: Record<string, number>;
+    projection: { Low: number; Moderate: number; High: number };
+  };
+  function blankState(): ScoreState {
+    return {
+      summer: 0, winter: 0, day: 0, night: 0,
+      affordable: 0, expensive: 0, designer: 0, niche: 0,
+      profiles: {}, projection: { Low: 0, Moderate: 0, High: 0 },
+    };
+  }
+  function buildState(): ScoreState {
+    const s = blankState();
+    answers.forEach((ans, idx) => {
+      const eff = QUESTIONS[idx]?.options[ans]?.effects;
+      if (!eff) return;
+      for (const [k, v] of Object.entries(eff)) {
+        if (k.startsWith("p:")) s.profiles[k.slice(2)] = (s.profiles[k.slice(2)] || 0) + v;
+        else if (k.startsWith("proj:")) s.projection[k.slice(5) as "Low" | "Moderate" | "High"] += v;
+        else (s as any)[k] += v;
+      }
+    });
+    return s;
+  }
+
+  // Derive a projection tier for a fragrance from its season / time / families.
+  function fragProjection(f: QFrag): "Low" | "Moderate" | "High" {
+    let p = f.season === "winter" ? 2 : -1;
+    if (f.times.includes("night")) p += 1;
+    const fam = f.families;
+    if (fam.includes("Gourmand")) p += 2;
+    if (fam.includes("Sweet")) p += 1;
+    if (fam.includes("Spicy")) p += 1;
+    if (fam.includes("Leather")) p += 2;
+    if (fam.includes("Woody")) p += 1;
+    if (fam.includes("Citrus")) p -= 2;
+    if (fam.includes("Aquatic")) p -= 2;
+    if (fam.includes("Fresh")) p -= 1;
+    if (p >= 4) return "High";
+    if (p <= 0) return "Low";
+    return "Moderate";
+  }
+
+  function matchScore(f: QFrag, s: ScoreState): number {
+    let score = 0;
+    score += f.season === "summer" ? s.summer : s.winter;
+    for (const t of f.times) score += (t === "day" ? s.day : s.night) * 0.5;
+    score += f.houseType === "designer" ? s.designer : s.niche;
+    score += (f.priceTier === "budget" ? s.affordable : s.expensive) * 0.5;
+    for (const fam of f.families) score += s.profiles[fam] || 0;
+    score += s.projection[fragProjection(f)] || 0;
+    return score;
+  }
+
+  function recommend() {
+    const s = buildState();
+    let pool = quizFrags.slice();
+    // Hard boundary: budget vs premium.
+    if (s.affordable > s.expensive) pool = pool.filter((f) => f.priceTier === "budget");
+    else if (s.expensive > s.affordable) pool = pool.filter((f) => f.priceTier === "premium");
+    if (pool.length === 0) pool = quizFrags.slice();
+
+    const scored = pool
+      .map((f) => ({ f, score: matchScore(f, s) }))
+      .sort((a, b) => b.score - a.score);
+    const used = new Set<string>();
+    const pick = (test: (f: QFrag) => boolean): QFrag | undefined => {
+      for (const it of scored) if (!used.has(it.f.id) && test(it.f)) { used.add(it.f.id); return it.f; }
+      for (const it of scored) if (test(it.f)) return it.f;
+      return scored[0]?.f;
+    };
+    return [
+      { label: "Top for Summer", f: pick((f) => f.season === "summer") },
+      { label: "Top for Winter", f: pick((f) => f.season === "winter") },
+      { label: "Top for Day", f: pick((f) => f.times.includes("day")) },
+      { label: "Top for Night", f: pick((f) => f.times.includes("night")) },
+    ];
+  }
+
+  function setProgress(label: string, counter: string, pct: number) {
+    if (phaseEl) phaseEl.textContent = label;
+    if (counterEl) counterEl.textContent = counter;
+    if (progressEl) (progressEl as HTMLElement).style.width = `${pct}%`;
+  }
+
+  function renderQuestion() {
+    if (!stageEl) return;
+    const q = QUESTIONS[qi];
+    setProgress(q.phase, `${qi + 1} / ${QUESTIONS.length}`, ((qi + 1) / QUESTIONS.length) * 100);
+    stageEl.innerHTML = `
+      <div class="quiz-q">
+        <p class="eyebrow">Question ${qi + 1}</p>
+        <h2 class="font-display mt-3 text-2xl font-light leading-snug tracking-tight md:text-4xl">${q.q}</h2>
+        <div class="mt-8 flex flex-col gap-3">
+          ${q.options.map((o, i) => `
+            <button class="quiz-opt" data-opt="${i}">
+              <span class="opt-key">${KEYS[i]}</span>
+              <span class="pt-0.5 text-sm md:text-base">${o.label}</span>
+            </button>`).join("")}
+        </div>
+        ${qi > 0 ? `<button id="quiz-back" class="mt-7 text-xs uppercase tracking-[0.18em]" style="color:var(--text-faint)">← Back</button>` : ""}
+      </div>`;
+    stageEl.querySelectorAll<HTMLButtonElement>(".quiz-opt").forEach((btn) => {
+      btn.addEventListener("click", () => choose(parseInt(btn.dataset.opt || "0", 10)));
+    });
+    document.getElementById("quiz-back")?.addEventListener("click", () => { if (qi > 0) { qi--; renderQuestion(); } });
+    document.querySelector(".quiz-scroll")?.scrollTo({ top: 0 });
+  }
+
+  function choose(i: number) {
+    answers[qi] = i;
+    if (qi >= QUESTIONS.length - 1) renderResults();
+    else { qi++; renderQuestion(); }
+  }
+
+  function renderResults() {
+    if (!stageEl) return;
+    setProgress("Your Edit", "Done", 100);
+    const recs = recommend();
+    const cards = recs.map((r) => {
+      const f = r.f;
+      if (!f) return "";
+      return `
+        <button class="quiz-result-card group flex flex-col p-4 text-left" data-result-id="${f.id}">
+          <span class="text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--accent)">${r.label}</span>
+          <div class="relative my-3 flex h-36 items-center justify-center">
+            <div class="absolute inset-0 m-auto h-24 w-24 rounded-full" style="background:radial-gradient(circle, ${f.accent[0]}, transparent 70%);filter:blur(28px);opacity:.5"></div>
+            <img src="${f.image}" alt="${f.brand} ${f.name}" class="relative h-full w-auto object-contain" />
+          </div>
+          <span class="text-base font-bold leading-tight">${f.brand}</span>
+          <span class="text-sm font-light" style="color:var(--text-muted)">${f.name}</span>
+          <span class="mt-3 text-[0.6rem] uppercase tracking-[0.18em]" style="color:var(--text-faint)">View details +</span>
+        </button>`;
+    }).join("");
+    stageEl.innerHTML = `
+      <div class="quiz-q">
+        <p class="eyebrow">Your Signature Edit</p>
+        <h2 class="font-display mt-3 text-3xl font-light tracking-tight md:text-5xl">Four scents, chosen for you.</h2>
+        <p class="mt-4 max-w-xl text-sm" style="color:var(--text-muted)">Based on your 20 answers — the best match for each season and time of day, within your budget.</p>
+        <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">${cards}</div>
+        <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+          <button id="quiz-restart" class="btn-ghost rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">Retake quiz</button>
+          <button id="quiz-explore" class="btn-accent rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">Explore full catalog</button>
+        </div>
+      </div>`;
+    stageEl.querySelectorAll<HTMLButtonElement>("[data-result-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.resultId || "";
+        closeQuiz();
+        const gridBtn = document.querySelector<HTMLElement>(`#grid [data-open-drawer][data-id="${id}"]`);
+        if (gridBtn) { gridBtn.closest(".card-wrap")?.classList.remove("hidden-card"); openDrawer(gridBtn); }
+      });
+    });
+    document.getElementById("quiz-restart")?.addEventListener("click", startQuiz);
+    document.getElementById("quiz-explore")?.addEventListener("click", () => {
+      closeQuiz();
+      document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" });
+    });
+    document.querySelector(".quiz-scroll")?.scrollTo({ top: 0 });
+  }
+
+  function startQuiz() { qi = 0; answers.length = 0; quizEl?.classList.add("open"); document.body.style.overflow = "hidden"; renderQuestion(); }
+  function closeQuiz() { quizEl?.classList.remove("open"); document.body.style.overflow = ""; }
+
+  document.getElementById("open-quiz")?.addEventListener("click", startQuiz);
+  document.getElementById("quiz-close")?.addEventListener("click", closeQuiz);
+
+  // ─── Hero CTA: cursor-mask paint blob that "drags" toward the pointer ────
+  const quizBtn = document.getElementById("open-quiz") as HTMLElement | null;
+  if (quizBtn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, inside = false;
+    const setVars = () => {
+      quizBtn.style.setProperty("--mx", `${cx}px`);
+      quizBtn.style.setProperty("--my", `${cy}px`);
+    };
+    const tick = () => {
+      cx += (tx - cx) * 0.16; // lower factor = more "drag"/lag
+      cy += (ty - cy) * 0.16;
+      setVars();
+      if (inside || Math.abs(tx - cx) > 0.4 || Math.abs(ty - cy) > 0.4) {
+        raf = requestAnimationFrame(tick);
+      } else raf = 0;
+    };
+    quizBtn.addEventListener("pointerenter", (e) => {
+      inside = true;
+      const r = quizBtn.getBoundingClientRect();
+      tx = e.clientX - r.left; ty = e.clientY - r.top;
+      cx = tx; cy = ty; // snap on entry so the blob doesn't fly in from a corner
+      setVars();
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+    quizBtn.addEventListener("pointermove", (e) => {
+      const r = quizBtn.getBoundingClientRect();
+      tx = e.clientX - r.left; ty = e.clientY - r.top;
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+    quizBtn.addEventListener("pointerleave", () => { inside = false; });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (quizEl?.classList.contains("open")) closeQuiz();
+    if (dict?.classList.contains("open")) closeDict();
   });
 </script>

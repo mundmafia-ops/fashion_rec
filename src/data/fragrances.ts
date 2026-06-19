@@ -717,6 +717,11 @@ export function shopLinks(f: Fragrance): ShopLinks {
   };
 }
 
+/** Path to the product photo for a fragrance (transparent PNG in /public). */
+export function fragranceImage(id: string): string {
+  return `/perfumes/${id}.png`;
+}
+
 /** Two-letter house initials used on the bottle illustration. */
 export function initials(brand: string): string {
   const words = brand.replace(/&/g, "").split(/\s+/).filter(Boolean);

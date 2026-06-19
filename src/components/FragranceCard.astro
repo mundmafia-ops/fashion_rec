@@ -1,8 +1,7 @@
 ---
-import Bottle from "@/components/Bottle.astro";
 import NoteRow from "@/components/NoteRow.astro";
 import { HOUSE_LABELS, TIER_LABELS, type Fragrance } from "@/lib/types";
-import { shopLinks, initials } from "@/data/fragrances";
+import { shopLinks, initials, fragranceImage } from "@/data/fragrances";
 
 interface Props {
   f: Fragrance;
@@ -11,6 +10,7 @@ interface Props {
 const { f, index } = Astro.props;
 const links = shopLinks(f);
 const ini = initials(f.brand);
+const img = fragranceImage(f.id);
 const delay = (index % 4) * 80;
 ---
 
@@ -43,6 +43,7 @@ const delay = (index % 4) * 80;
     data-from={f.accent[0]}
     data-to={f.accent[1]}
     data-initials={ini}
+    data-image={img}
     data-aar={links.aar}
     data-pg={links.perfumeGyaan}
   >
@@ -53,8 +54,14 @@ const delay = (index % 4) * 80;
         style={`background:radial-gradient(circle, ${f.accent[0]}, transparent 70%)`}
       >
       </div>
-      <div class="relative h-40" style="aspect-ratio:200/280">
-        <Bottle from={f.accent[0]} to={f.accent[1]} initials={ini} id={f.id} />
+      <div class="bottle-img relative flex h-40 items-center justify-center">
+        <img
+          src={img}
+          alt={`${f.brand} ${f.name} bottle`}
+          loading="lazy"
+          decoding="async"
+          class="h-full w-auto max-w-[70%] object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.45)]"
+        />
       </div>
       <!-- season / tier corner tag -->
       <span

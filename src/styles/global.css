@@ -32,18 +32,39 @@
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f4eee5;
-  --bg-soft: #ece3d6;
-  --surface: rgba(0, 37, 0, 0.02);
-  --surface-2: rgba(0, 37, 0, 0.035);
-  --border: rgba(0, 37, 0, 0.14);
-  --border-strong: rgba(0, 37, 0, 0.32);
-  --text: #14210f;
-  --text-muted: #5c6450;
-  --text-faint: #8a917e;
+  --bg: #f2ebdf; /* warm paper */
+  --bg-soft: #fcf9f4; /* near-white for elevated panels / drawers */
+  --surface: rgba(255, 255, 255, 0.62); /* cards sit *above* the paper */
+  --surface-2: rgba(255, 255, 255, 0.92);
+  --border: rgba(54, 40, 28, 0.12);
+  --border-strong: rgba(54, 40, 28, 0.24);
+  --text: #241c15;
+  --text-muted: #6a6053;
+  --text-faint: #9b9183;
   --accent: #b7245c;
-  --accent-soft: rgba(183, 36, 92, 0.12);
-  --shadow: 0 30px 60px -32px rgba(40, 30, 20, 0.35);
+  --accent-soft: rgba(183, 36, 92, 0.1);
+  --shadow: 0 16px 36px -22px rgba(60, 42, 30, 0.3);
+}
+
+/* ── Light-mode tuning: soften fixed-colour glows + lift the cards ──────── */
+[data-theme="light"] .card {
+  box-shadow: 0 1px 2px rgba(60, 42, 30, 0.05), 0 8px 20px -16px rgba(60, 42, 30, 0.12);
+}
+[data-theme="light"] .card:hover {
+  box-shadow: var(--shadow);
+}
+[data-theme="light"] .catcard {
+  box-shadow: 0 1px 2px rgba(60, 42, 30, 0.05);
+}
+/* per request: in light mode, no glow/aura or drop-shadow on the bottles
+   in the catalogue cards or the hero carousel */
+[data-theme="light"] .cr-aura,
+[data-theme="light"] .card-glow {
+  display: none;
+}
+[data-theme="light"] .bottle-img img,
+[data-theme="light"] .cr-float img {
+  filter: none;
 }
 
 @theme inline {
@@ -198,13 +219,15 @@ body {
   box-shadow: var(--shadow);
   background: var(--surface-2);
 }
-.card:hover .bottle {
+.card:hover .bottle,
+.card:hover .bottle-img img {
   transform: translateY(-6px) scale(1.04);
 }
 .card:hover .card-glow {
   opacity: 0.55;
 }
-.bottle {
+.bottle,
+.bottle-img img {
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-glow {
@@ -509,6 +532,242 @@ body {
 }
 [data-theme="light"] .theme-toggle .knob {
   transform: translateX(28px);
+}
+
+/* ─── Top-nav buttons ──────────────────────────────────────────────────── */
+.nav-link {
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.35s ease;
+}
+.nav-link:hover {
+  color: var(--text) !important;
+}
+.nav-link.nav-active {
+  color: var(--accent) !important;
+}
+.nav-link.nav-active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+  background: var(--accent);
+}
+.nav-dict {
+  cursor: pointer;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  background: var(--surface-2);
+  transition: border-color 0.35s ease, color 0.35s ease, background-color 0.35s ease;
+}
+.nav-dict:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ─── Hero primary CTA (raised hierarchy + dissolving aura + paint mask) ── */
+.quiz-btn-wrap {
+  position: relative;
+  display: block;
+  --paint: #2bd7a6; /* complementary teal-green to the raspberry accent */
+}
+/* soft, breathing, dissolving halo behind the button */
+.quiz-aura {
+  position: absolute;
+  inset: -22px;
+  z-index: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--accent) 60%, transparent),
+    color-mix(in srgb, var(--accent) 22%, transparent) 62%,
+    transparent 82%
+  );
+  filter: blur(26px);
+  opacity: 0.55;
+  animation: auraDissolve 3.4s ease-in-out infinite;
+}
+@keyframes auraDissolve {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+
+.btn-hero-primary {
+  position: relative;
+  z-index: 1;
+  animation: heroPulse 2.8s ease-in-out infinite;
+}
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+@keyframes heroPulse {
+  0%,
+  100% {
+    box-shadow: 0 16px 38px -12px color-mix(in srgb, var(--accent) 78%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 22px 48px -12px color-mix(in srgb, var(--accent) 88%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+}
+
+/* cursor-following complementary "paint" blob, revealed only on hover */
+.btn-paint {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background: radial-gradient(
+    circle 130px at var(--mx, 50%) var(--my, 50%),
+    var(--paint),
+    color-mix(in srgb, var(--paint) 55%, transparent) 42%,
+    transparent 64%
+  );
+}
+.btn-hero-primary:hover .btn-paint {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-hero-primary,
+  .quiz-aura {
+    animation: none;
+  }
+  .btn-hero-primary {
+    box-shadow: 0 16px 38px -12px color-mix(in srgb, var(--accent) 78%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+}
+
+/* ─── Dictionary drawer (slides from the left) ─────────────────────────── */
+#dict-drawer {
+  visibility: hidden;
+  pointer-events: none;
+}
+#dict-drawer.open {
+  visibility: visible;
+  pointer-events: auto;
+}
+#dict-drawer .scrim {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#dict-drawer.open .scrim {
+  opacity: 1;
+}
+#dict-drawer .dict-panel {
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow);
+}
+#dict-drawer.open .dict-panel {
+  transform: translateX(0);
+}
+.dict-card {
+  transition: border-color 0.4s ease, transform 0.4s ease, background-color 0.4s ease;
+}
+.dict-card:hover {
+  border-color: var(--border-strong);
+  transform: translateX(4px);
+}
+
+/* ─── Quiz overlay ─────────────────────────────────────────────────────── */
+#quiz {
+  visibility: hidden;
+  pointer-events: none;
+}
+#quiz.open {
+  visibility: visible;
+  pointer-events: auto;
+}
+#quiz .quiz-scrim {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+#quiz.open .quiz-scrim {
+  opacity: 1;
+}
+#quiz .quiz-shell {
+  opacity: 0;
+  transform: translateY(16px) scale(0.99);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#quiz.open .quiz-shell {
+  opacity: 1;
+  transform: none;
+}
+.quiz-q {
+  animation: quizIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes quizIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.quiz-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 1rem;
+  padding: 1rem 1.15rem;
+  color: var(--text);
+  transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+}
+.quiz-opt:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+.quiz-opt .opt-key {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+.quiz-opt:hover .opt-key {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.quiz-result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  transition: border-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+}
+.quiz-result-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
 }
 
 /* ─── Sillage cursor (custom dot + trail) ──────────────────────────────── */
