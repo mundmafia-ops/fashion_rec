@@ -56,8 +56,12 @@ export type Fragrance = {
 };
 
 export type ShopLinks = {
-  aar: string;
-  perfumeGyaan: string;
+  amazon: string;
+};
+
+export type Performance = {
+  sillage: "Low" | "High";
+  projection: "Low" | "High";
 };
 
 export const HOUSE_LABELS: Record<HouseType, string> = {

@@ -282,6 +282,22 @@ const quizFragrances = fragrances.map((f) => ({
               </div>
 
               <div class="filter-group">
+                <p class="eyebrow mb-3">Sillage</p>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="sillage" data-value="Low" aria-pressed="false">Low</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="sillage" data-value="High" aria-pressed="false">High</button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <p class="eyebrow mb-3">Projection</p>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="projection" data-value="Low" aria-pressed="false">Low</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="projection" data-value="High" aria-pressed="false">High</button>
+                </div>
+              </div>
+
+              <div class="filter-group">
                 <p class="eyebrow mb-3">Olfactory Profile</p>
                 <div class="flex flex-wrap gap-2">
                   {FAMILIES.map((fam) => (
@@ -359,7 +375,7 @@ const quizFragrances = fragrances.map((f) => ({
   </footer>
 
   <!-- ───────────────────────── Drawer / modal ───────────────────────── -->
-  <div id="drawer" class="fixed inset-0 z-50">
+  <div id="drawer" class="fixed inset-0 z-[70]">
     <div class="scrim absolute inset-0" style="background:rgba(0,0,0,0.6)" data-close-drawer></div>
     <aside class="panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-y-auto sm:max-w-lg" style="background:var(--bg-soft)">
       <div class="flex items-center justify-between px-7 pt-7">
@@ -379,17 +395,25 @@ const quizFragrances = fragrances.map((f) => ({
 
         <div class="mt-6 flex flex-wrap gap-2" id="d-tags"></div>
 
+        <p class="eyebrow mt-8 mb-3">Performance</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-xl border p-3.5" style="border-color:var(--border);background:var(--surface)">
+            <p class="text-[0.58rem] uppercase tracking-[0.18em]" style="color:var(--text-faint)">Sillage</p>
+            <p class="mt-1 flex items-center gap-2 text-sm font-semibold"><span id="d-sillage-dot" class="inline-block h-2 w-2 rounded-full"></span><span id="d-sillage"></span></p>
+          </div>
+          <div class="rounded-xl border p-3.5" style="border-color:var(--border);background:var(--surface)">
+            <p class="text-[0.58rem] uppercase tracking-[0.18em]" style="color:var(--text-faint)">Projection</p>
+            <p class="mt-1 flex items-center gap-2 text-sm font-semibold"><span id="d-projection-dot" class="inline-block h-2 w-2 rounded-full"></span><span id="d-projection"></span></p>
+          </div>
+        </div>
+
         <p class="eyebrow mt-8 mb-3">Note Pyramid</p>
         <div class="space-y-3" id="d-notes"></div>
 
         <p class="eyebrow mt-8 mb-3">Where to Buy</p>
         <div class="flex flex-col gap-3">
-          <a id="d-aar" href="#" target="_blank" rel="noopener" class="btn-accent flex items-center justify-between rounded-xl px-5 py-4 text-sm">
-            <span class="font-medium">Find a Bottle · AAR Fragrances</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"></path></svg>
-          </a>
-          <a id="d-pg" href="#" target="_blank" rel="noopener" class="btn-ghost flex items-center justify-between rounded-xl px-5 py-4 text-sm">
-            <span class="font-medium">View on Perfume Gyaan</span>
+          <a id="d-amazon" href="#" target="_blank" rel="noopener" class="btn-accent flex items-center justify-between rounded-xl px-5 py-4 text-sm">
+            <span class="font-medium">Find it on Amazon</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"></path></svg>
           </a>
         </div>
@@ -670,6 +694,8 @@ const quizFragrances = fragrances.map((f) => ({
     mood: new Set<string>(),
     price: new Set<string>(),
     house: new Set<string>(),
+    sillage: new Set<string>(),
+    projection: new Set<string>(),
     family: new Set<string>(),
   };
 
@@ -681,6 +707,8 @@ const quizFragrances = fragrances.map((f) => ({
       const price = card.dataset.price || "";
       const house = card.dataset.house || "";
       const gender = card.dataset.gender || "men";
+      const sillage = card.dataset.sillage || "";
+      const projection = card.dataset.projection || "";
       const families = (card.dataset.families || "").split(" ");
 
       const okGender = active.gender.size === 0 || active.gender.has(gender);
@@ -688,10 +716,12 @@ const quizFragrances = fragrances.map((f) => ({
         [...active.mood].some((m) => season === m || times.includes(m));
       const okPrice = active.price.size === 0 || active.price.has(price);
       const okHouse = active.house.size === 0 || active.house.has(house);
+      const okSillage = active.sillage.size === 0 || active.sillage.has(sillage);
+      const okProjection = active.projection.size === 0 || active.projection.has(projection);
       const okFamily = active.family.size === 0 ||
         families.some((fam) => active.family.has(fam));
 
-      const visible = okGender && okMood && okPrice && okHouse && okFamily;
+      const visible = okGender && okMood && okPrice && okHouse && okSillage && okProjection && okFamily;
       card.classList.toggle("hidden-card", !visible);
       if (visible) shown++;
     }
@@ -712,7 +742,7 @@ const quizFragrances = fragrances.map((f) => ({
   // sidebar chips — multi-select (gender / price / house / family alike)
   document.querySelectorAll<HTMLButtonElement>(".chip[data-group]").forEach((chip) => {
     chip.addEventListener("click", () => {
-      const group = chip.dataset.group as "gender" | "price" | "house" | "family";
+      const group = chip.dataset.group as "gender" | "price" | "house" | "sillage" | "projection" | "family";
       const value = chip.dataset.value || "";
       const set = active[group];
       if (set.has(value)) { set.delete(value); chip.setAttribute("aria-pressed", "false"); }
@@ -732,7 +762,8 @@ const quizFragrances = fragrances.map((f) => ({
   });
 
   document.getElementById("reset-filters")?.addEventListener("click", () => {
-    active.gender.clear(); active.mood.clear(); active.price.clear(); active.house.clear(); active.family.clear();
+    active.gender.clear(); active.mood.clear(); active.price.clear(); active.house.clear();
+    active.sillage.clear(); active.projection.clear(); active.family.clear();
     document.querySelectorAll("[aria-pressed]").forEach((c) => {
       const el = c as HTMLElement;
       if (el.id === "theme-toggle" || el.classList.contains("gender-link")) return;
@@ -804,10 +835,17 @@ const quizFragrances = fragrances.map((f) => ({
       notes.innerHTML = noteRow("Top", d.top || "") + noteRow("Heart", d.mid || "") + noteRow("Base", d.base || "");
     }
 
-    const aar = document.getElementById("d-aar") as HTMLAnchorElement | null;
-    const pg = document.getElementById("d-pg") as HTMLAnchorElement | null;
-    if (aar) aar.href = d.aar || "#";
-    if (pg) pg.href = d.pg || "#";
+    // performance (sillage + projection) with a colour-coded strength dot
+    const perfDot = (level: string) => (level === "High" ? "var(--accent)" : "var(--text-faint)");
+    const setPerf = (txtId: string, dotId: string, level: string) => {
+      const t = document.getElementById(txtId); if (t) t.textContent = level || "—";
+      const dot = document.getElementById(dotId); if (dot) (dot as HTMLElement).style.background = perfDot(level);
+    };
+    setPerf("d-sillage", "d-sillage-dot", d.sillage || "");
+    setPerf("d-projection", "d-projection-dot", d.projection || "");
+
+    const amazon = document.getElementById("d-amazon") as HTMLAnchorElement | null;
+    if (amazon) amazon.href = d.amazon || "#";
 
     drawer?.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -815,7 +853,8 @@ const quizFragrances = fragrances.map((f) => ({
 
   function closeDrawer() {
     drawer?.classList.remove("open");
-    document.body.style.overflow = "";
+    // If the quiz results are still open underneath, keep the page locked.
+    document.body.style.overflow = document.getElementById("quiz")?.classList.contains("open") ? "hidden" : "";
   }
 
   document.querySelectorAll<HTMLElement>("[data-open-drawer]").forEach((btn) => {
@@ -925,12 +964,14 @@ const quizFragrances = fragrances.map((f) => ({
     { phase: "The Investment", q: "How do you feel about Middle-Eastern alternative houses (Lattafa, Afnan)?", options: [
       { label: "Love them — incredible value and viral power for the price.", effects: { affordable: 2, designer: 1 } },
       { label: "I prefer classic European / Western designer or niche.", effects: { expensive: 1, niche: 1 } },
+      { label: "Not so sure — I'm new to fragrances.", effects: {} },
     ]},
     // ── Phase 3 · The Presence ──
     { phase: "The Presence", q: "What's your ultimate goal when entering a room?", options: [
       { label: "A strong trail — people should smell me after I pass.", effects: { "proj:High": 3 } },
       { label: "A quiet, intimate presence — only close hugs notice it.", effects: { "proj:Low": 3 } },
       { label: "A solid arms-length cloud that commands respect.", effects: { "proj:Moderate": 3 } },
+      { label: "No preference — surprise me.", effects: {} },
     ]},
     { phase: "The Presence", q: "How long do you need this fragrance to last?", options: [
       { label: "Workhorse longevity (8+ hrs) — survives a full day or night.", effects: { "proj:High": 2, winter: 1, "p:Gourmand": 1 } },
@@ -946,10 +987,11 @@ const quizFragrances = fragrances.map((f) => ({
       { label: "A warm espresso or a glass of aged cognac / whiskey.", effects: { "p:Gourmand": 2, "p:Sweet": 1 } },
       { label: "A cold, sophisticated iced oolong or Earl Grey.", effects: { "p:Fresh": 1, "p:Spicy": 1 } },
     ]},
-    { phase: "Olfactory Archetypes", q: "Which environment feels most comforting to your senses?", options: [
-      { label: "The sharp, salty breeze of the open ocean.", effects: { "p:Aquatic": 2, "p:Fresh": 1 } },
-      { label: "An old library of leather-bound books and polished wood.", effects: { "p:Leather": 2, "p:Woody": 1 } },
-      { label: "A spice market of cinnamon, cardamom, and vanilla pods.", effects: { "p:Spicy": 2, "p:Sweet": 1, "p:Gourmand": 1 } },
+    { phase: "Olfactory Archetypes", q: "Where will you wear this fragrance the most?", options: [
+      { label: "A beach day or poolside hangout.", effects: { summer: 1, day: 1, "p:Aquatic": 2, "p:Fresh": 1 } },
+      { label: "A romantic date night.", effects: { winter: 1, night: 1, "p:Sweet": 1, "p:Spicy": 1, "proj:Moderate": 1 } },
+      { label: "The gym or an active day outdoors.", effects: { summer: 1, day: 1, "p:Citrus": 1, "p:Fresh": 1, "proj:Low": 1 } },
+      { label: "A cozy night in or a mountain getaway.", effects: { winter: 1, night: 1, "p:Woody": 1, "p:Gourmand": 1 } },
     ]},
     { phase: "Olfactory Archetypes", q: "If your style were a flavour profile, it would be:", options: [
       { label: "Tart, zesty, sharp, and energising.", effects: { "p:Citrus": 1, "p:Fresh": 2 } },
@@ -1138,9 +1180,9 @@ const quizFragrances = fragrances.map((f) => ({
       const f = r.f;
       if (!f) return "";
       return `
-        <button class="quiz-result-card group flex flex-col p-4 text-left" data-result-id="${f.id}">
+        <button class="quiz-result-card group flex flex-col items-center p-4 text-center sm:items-start sm:text-left" data-result-id="${f.id}">
           <span class="text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--accent)">${r.label}</span>
-          <div class="relative my-3 flex h-36 items-center justify-center">
+          <div class="relative my-3 flex h-36 w-full items-center justify-center">
             <div class="absolute inset-0 m-auto h-24 w-24 rounded-full" style="background:radial-gradient(circle, ${f.accent[0]}, transparent 70%);filter:blur(28px);opacity:.5"></div>
             <img src="${f.image}" alt="${f.brand} ${f.name}" class="relative h-full w-auto object-contain" />
           </div>
@@ -1153,7 +1195,7 @@ const quizFragrances = fragrances.map((f) => ({
       <div class="quiz-q">
         <p class="eyebrow">Your Signature Edit</p>
         <h2 class="font-display mt-3 text-3xl font-light tracking-tight md:text-5xl">Four scents, chosen for you.</h2>
-        <p class="mt-4 max-w-xl text-sm" style="color:var(--text-muted)">Based on your 20 answers — the best match for each season and time of day, within your budget.</p>
+        <p class="mt-4 max-w-xl text-sm" style="color:var(--text-muted)">Based on your ${QUESTIONS.length} answers — the best match for each season and time of day, within your budget.</p>
         <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">${cards}</div>
         <div class="mt-9 flex flex-col gap-3 sm:flex-row">
           <button id="quiz-restart" class="btn-ghost rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">Retake quiz</button>
@@ -1163,9 +1205,10 @@ const quizFragrances = fragrances.map((f) => ({
     stageEl.querySelectorAll<HTMLButtonElement>("[data-result-id]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.resultId || "";
-        closeQuiz();
+        // Keep the quiz results open underneath; the drawer layers on top, so
+        // closing the drawer returns to the four assorted picks.
         const gridBtn = document.querySelector<HTMLElement>(`#grid [data-open-drawer][data-id="${id}"]`);
-        if (gridBtn) { gridBtn.closest(".card-wrap")?.classList.remove("hidden-card"); openDrawer(gridBtn); }
+        if (gridBtn) openDrawer(gridBtn);
       });
     });
     document.getElementById("quiz-restart")?.addEventListener("click", startQuiz);
@@ -1216,6 +1259,8 @@ const quizFragrances = fragrances.map((f) => ({
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
+    // The drawer's own Escape handler closes it first; don't also close the quiz.
+    if (drawer?.classList.contains("open")) return;
     if (quizEl?.classList.contains("open")) closeQuiz();
     if (dict?.classList.contains("open")) closeDict();
   });

@@ -1,7 +1,7 @@
 ---
 import NoteRow from "@/components/NoteRow.astro";
 import { HOUSE_LABELS, TIER_LABELS, type Fragrance } from "@/lib/types";
-import { shopLinks, initials, fragranceImage, genderOf } from "@/data/fragrances";
+import { shopLinks, initials, fragranceImage, genderOf, performanceOf } from "@/data/fragrances";
 
 interface Props {
   f: Fragrance;
@@ -13,6 +13,7 @@ const ini = initials(f.brand);
 const img = fragranceImage(f.id);
 const gender = genderOf(f);
 const genderLabel = { men: "Men", women: "Women", unisex: "Unisex" }[gender];
+const perf = performanceOf(f);
 const delay = (index % 4) * 80;
 ---
 
@@ -23,6 +24,8 @@ const delay = (index % 4) * 80;
   data-house={f.houseType}
   data-price={f.priceTier}
   data-gender={genderOf(f)}
+  data-sillage={perf.sillage}
+  data-projection={perf.projection}
   data-families={f.families.join(" ")}
   data-reveal
   style={`--reveal-delay:${delay}ms`}
@@ -47,8 +50,9 @@ const delay = (index % 4) * 80;
     data-to={f.accent[1]}
     data-initials={ini}
     data-image={img}
-    data-aar={links.aar}
-    data-pg={links.perfumeGyaan}
+    data-amazon={links.amazon}
+    data-sillage={perf.sillage}
+    data-projection={perf.projection}
   >
     <!-- bottle stage -->
     <div class="relative mb-5 flex h-44 items-center justify-center">
@@ -105,14 +109,14 @@ const delay = (index % 4) * 80;
     <!-- action -->
     <div class="mt-5 flex items-center justify-between">
       <a
-        href={links.aar}
+        href={links.amazon}
         target="_blank"
         rel="noopener"
         data-stop
         class="link-underline inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em]"
         style="color:var(--accent)"
       >
-        Find a Bottle
+        Find on Amazon
         <svg
           width="13"
           height="13"

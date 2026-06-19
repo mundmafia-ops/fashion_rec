@@ -1,4 +1,4 @@
-import type { Fragrance, Gender, ShopLinks } from "@/lib/types";
+import type { Fragrance, Gender, Performance, ShopLinks } from "@/lib/types";
 import { extraFragrances } from "@/data/fragrances-extra";
 
 const baseFragrances: Fragrance[] = [
@@ -717,12 +717,31 @@ export function genderOf(f: Fragrance): Gender {
   return f.gender ?? "men";
 }
 
-/** Build affiliate/search links to the two partner stores for a fragrance. */
+/** Amazon search link for a fragrance (lands on the product listings). */
 export function shopLinks(f: Fragrance): ShopLinks {
-  const q = encodeURIComponent(`${f.brand} ${f.name}`);
+  const q = encodeURIComponent(`${f.brand} ${f.name} eau de parfum`);
   return {
-    aar: `https://aarfragrances.com/search?q=${q}`,
-    perfumeGyaan: `https://www.perfumegyaan.com/?s=${q}`,
+    amazon: `https://www.amazon.com/s?k=${q}`,
+  };
+}
+
+/** Derive sillage (scent trail) + projection (push) from the scent profile. */
+export function performanceOf(f: Fragrance): Performance {
+  let s = f.season === "winter" ? 2 : -1;
+  if (f.times.includes("night")) s += 1;
+  const fam = f.families;
+  if (fam.includes("Gourmand")) s += 2;
+  if (fam.includes("Sweet")) s += 1;
+  if (fam.includes("Spicy")) s += 1;
+  if (fam.includes("Leather")) s += 2;
+  if (fam.includes("Woody")) s += 1;
+  if (fam.includes("Floral")) s += 0.5;
+  if (fam.includes("Citrus")) s -= 2;
+  if (fam.includes("Aquatic")) s -= 2;
+  if (fam.includes("Fresh")) s -= 1;
+  return {
+    projection: s >= 3 ? "High" : "Low",
+    sillage: s >= 2 ? "High" : "Low",
   };
 }
 
