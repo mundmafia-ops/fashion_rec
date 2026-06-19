@@ -98,12 +98,15 @@ const quizFragrances = fragrances.map((f) => ({
         <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="winter" style="color:var(--text-muted)">Winter</button>
         <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="day" style="color:var(--text-muted)">Day</button>
         <button class="nav-link link-underline text-xs uppercase tracking-[0.2em]" data-nav-mood="night" style="color:var(--text-muted)">Night</button>
-        <button id="open-dictionary" class="nav-dict inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em]">
+        <button class="js-open-dict nav-dict inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em]">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>
           Dictionary
         </button>
       </nav>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <button id="search-jump" aria-label="Search fragrances" class="hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        </button>
         <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode" title="Toggle theme">
           <span class="knob">
             <svg id="icon-moon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
@@ -113,9 +116,26 @@ const quizFragrances = fragrances.map((f) => ({
             </svg>
           </span>
         </button>
-        <button aria-label="Cart" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text-muted)">
+        <button aria-label="Cart" class="hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
         </button>
+        <!-- mobile hamburger -->
+        <button id="menu-toggle" aria-label="Menu" aria-expanded="false" class="grid h-9 w-9 place-items-center rounded-full border md:hidden" style="border-color:var(--border-strong);color:var(--text)">
+          <svg id="icon-menu" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+          <svg id="icon-close" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- mobile dropdown menu -->
+    <div id="mobile-menu" class="mobile-menu md:hidden">
+      <div class="mx-4 mb-3 flex flex-col gap-1 rounded-2xl border p-3" style="border-color:var(--border-strong);background:var(--bg-soft)">
+        <button class="nav-link mobile-item" data-nav-mood="summer">Summer</button>
+        <button class="nav-link mobile-item" data-nav-mood="winter">Winter</button>
+        <button class="nav-link mobile-item" data-nav-mood="day">Day</button>
+        <button class="nav-link mobile-item" data-nav-mood="night">Night</button>
+        <button class="js-open-dict mobile-item" style="color:var(--accent)">Dictionary</button>
+        <button id="search-jump-m" class="mobile-item">Search</button>
       </div>
     </div>
   </header>
@@ -125,7 +145,7 @@ const quizFragrances = fragrances.map((f) => ({
     <section class="relative overflow-hidden px-6 pb-10 pt-32 md:px-10 md:pt-40">
       <div class="relative mx-auto grid w-full max-w-7xl items-end gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <!-- left: copy -->
-        <div>
+        <div class="min-w-0">
           <h1 class="font-display text-[2.7rem] font-light leading-[0.95] tracking-tight sm:text-6xl lg:text-[5rem]">
             <span class="hero-line"><span style="--d:120ms">A Guide for</span></span>
             <span class="hero-line"><span class="italic" style="--d:240ms;color:var(--accent)">Smelling Good.</span></span>
@@ -153,7 +173,7 @@ const quizFragrances = fragrances.map((f) => ({
         </div>
 
         <!-- right: the bottle carousel (in place of the old glow blob) -->
-        <div class="relative fade-in" style="--d:500ms">
+        <div class="relative min-w-0 fade-in" style="--d:500ms">
           <!-- gender selector — plain caps text, men default -->
           <div id="gender-toggle" class="absolute inset-x-0 -top-7 z-10 flex items-center justify-center gap-7">
             {GENDERS.map((g) => (
@@ -310,6 +330,11 @@ const quizFragrances = fragrances.map((f) => ({
 
           <!-- grid -->
           <div>
+            <div class="mb-5 flex items-center gap-3 rounded-full border px-4 py-2.5" style="border-color:var(--border-strong);background:var(--surface)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-faint)"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <input id="grid-search" type="search" placeholder="Search by brand, name, or note…" class="w-full bg-transparent text-sm outline-none" style="color:var(--text)" />
+              <button id="grid-search-clear" class="hidden text-xs uppercase tracking-[0.14em]" style="color:var(--accent)">Clear</button>
+            </div>
             <p id="result-count" class="mb-5 text-xs uppercase tracking-[0.2em]" style="color:var(--text-faint)">Showing {total} of {total}</p>
             <div id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {fragrances.map((f, i) => <FragranceCard f={f} index={i} />)}
@@ -698,6 +723,7 @@ const quizFragrances = fragrances.map((f) => ({
     projection: new Set<string>(),
     family: new Set<string>(),
   };
+  let searchQuery = "";
 
   function applyFilters() {
     let shown = 0;
@@ -720,8 +746,9 @@ const quizFragrances = fragrances.map((f) => ({
       const okProjection = active.projection.size === 0 || active.projection.has(projection);
       const okFamily = active.family.size === 0 ||
         families.some((fam) => active.family.has(fam));
+      const okSearch = searchQuery === "" || (card.dataset.search || "").includes(searchQuery);
 
-      const visible = okGender && okMood && okPrice && okHouse && okSillage && okProjection && okFamily;
+      const visible = okSearch && okGender && okMood && okPrice && okHouse && okSillage && okProjection && okFamily;
       card.classList.toggle("hidden-card", !visible);
       if (visible) shown++;
     }
@@ -761,9 +788,28 @@ const quizFragrances = fragrances.map((f) => ({
     });
   });
 
+  // ─── Search box ─────────────────────────────────────────────────────────
+  const searchInput = document.getElementById("grid-search") as HTMLInputElement | null;
+  const searchClear = document.getElementById("grid-search-clear");
+  searchInput?.addEventListener("input", () => {
+    searchQuery = searchInput.value.trim().toLowerCase();
+    searchClear?.classList.toggle("hidden", searchQuery === "");
+    applyFilters();
+  });
+  searchClear?.addEventListener("click", () => {
+    if (searchInput) searchInput.value = "";
+    searchQuery = "";
+    searchClear.classList.add("hidden");
+    applyFilters();
+    searchInput?.focus();
+  });
+
   document.getElementById("reset-filters")?.addEventListener("click", () => {
     active.gender.clear(); active.mood.clear(); active.price.clear(); active.house.clear();
     active.sillage.clear(); active.projection.clear(); active.family.clear();
+    searchQuery = "";
+    if (searchInput) searchInput.value = "";
+    searchClear?.classList.add("hidden");
     document.querySelectorAll("[aria-pressed]").forEach((c) => {
       const el = c as HTMLElement;
       if (el.id === "theme-toggle" || el.classList.contains("gender-link")) return;
@@ -879,8 +925,31 @@ const quizFragrances = fragrances.map((f) => ({
   const dict = document.getElementById("dict-drawer");
   function openDict() { dict?.classList.add("open"); document.body.style.overflow = "hidden"; }
   function closeDict() { dict?.classList.remove("open"); document.body.style.overflow = ""; }
-  document.getElementById("open-dictionary")?.addEventListener("click", openDict);
+  document.querySelectorAll(".js-open-dict").forEach((el) => el.addEventListener("click", openDict));
   document.querySelectorAll("[data-close-dict]").forEach((el) => el.addEventListener("click", closeDict));
+
+  // ─── Mobile menu (hamburger dropdown) ───────────────────────────────────
+  const menuToggle = document.getElementById("menu-toggle");
+  const mobileMenu = document.getElementById("mobile-menu");
+  const iconMenu = document.getElementById("icon-menu");
+  const iconClose = document.getElementById("icon-close");
+  function setMenu(open: boolean) {
+    mobileMenu?.classList.toggle("open", open);
+    menuToggle?.setAttribute("aria-expanded", String(open));
+    if (iconMenu) iconMenu.style.display = open ? "none" : "block";
+    if (iconClose) iconClose.style.display = open ? "block" : "none";
+  }
+  menuToggle?.addEventListener("click", () => setMenu(!mobileMenu?.classList.contains("open")));
+  // close the menu after picking any item
+  mobileMenu?.querySelectorAll(".mobile-item").forEach((el) => el.addEventListener("click", () => setMenu(false)));
+
+  // ─── Search shortcuts (header + mobile) → focus the catalogue search box ─
+  function jumpToSearch() {
+    document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => (document.getElementById("grid-search") as HTMLInputElement | null)?.focus(), 500);
+  }
+  document.getElementById("search-jump")?.addEventListener("click", jumpToSearch);
+  document.getElementById("search-jump-m")?.addEventListener("click", jumpToSearch);
 
   // ─── Nav category links → exclusive mood filter (one at a time) ─────────
   document.querySelectorAll<HTMLButtonElement>(".nav-link[data-nav-mood]").forEach((btn) => {

@@ -457,6 +457,7 @@ const baseFragrances: Fragrance[] = [
       base: ["Ambroxan", "Akigalawood", "Patchouli", "Cacao"],
     },
     accent: ["#BFD0A0", "#8AA86F"],
+    affiliate: "https://link.amazon/B0b4sKSoF",
   },
   {
     id: "bentley-for-men-intense",
@@ -654,6 +655,7 @@ const baseFragrances: Fragrance[] = [
       base: ["Vanilla", "Tonka Bean", "Amberwood", "Benzoin"],
     },
     accent: ["#C98A4E", "#7A4A28"],
+    affiliate: "https://link.amazon/B0eTZ9y74",
   },
   {
     id: "afnan-9pm",
@@ -717,11 +719,11 @@ export function genderOf(f: Fragrance): Gender {
   return f.gender ?? "men";
 }
 
-/** Amazon search link for a fragrance (lands on the product listings). */
+/** Amazon link for a fragrance: direct affiliate URL if set, else a search. */
 export function shopLinks(f: Fragrance): ShopLinks {
   const q = encodeURIComponent(`${f.brand} ${f.name} eau de parfum`);
   return {
-    amazon: `https://www.amazon.com/s?k=${q}`,
+    amazon: f.affiliate || `https://www.amazon.com/s?k=${q}`,
   };
 }
 

@@ -53,6 +53,8 @@ export type Fragrance = {
   notes: NotePyramid;
   /** Two-stop gradient [from, to] for the bottle illustration. */
   accent: [string, string];
+  /** Optional direct affiliate URL; overrides the default Amazon search link. */
+  affiliate?: string;
 };
 
 export type ShopLinks = {

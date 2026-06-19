@@ -14,6 +14,10 @@ const img = fragranceImage(f.id);
 const gender = genderOf(f);
 const genderLabel = { men: "Men", women: "Women", unisex: "Unisex" }[gender];
 const perf = performanceOf(f);
+const searchText = [
+  f.brand, f.name, ...f.families,
+  ...f.notes.top, ...f.notes.middle, ...f.notes.base,
+].join(" ").toLowerCase();
 const delay = (index % 4) * 80;
 ---
 
@@ -27,6 +31,7 @@ const delay = (index % 4) * 80;
   data-sillage={perf.sillage}
   data-projection={perf.projection}
   data-families={f.families.join(" ")}
+  data-search={searchText}
   data-reveal
   style={`--reveal-delay:${delay}ms`}
 >
