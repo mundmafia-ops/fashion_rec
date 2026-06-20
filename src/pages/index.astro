@@ -476,7 +476,8 @@ const quizFragrances = fragrances.map((f) => ({
 
       <!-- signed-in account strip (shown only once a user signs in with Google) -->
       <div id="wish-account" class="mx-7 mt-4 hidden items-center gap-3 rounded-2xl border p-3" style="border-color:var(--border);background:var(--surface)">
-        <img id="wish-account-avatar" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover" style="background:var(--bg-soft)" />
+        <img id="wish-account-avatar" alt="" referrerpolicy="no-referrer" class="hidden h-9 w-9 shrink-0 rounded-full object-cover" style="background:var(--bg-soft)" />
+        <div id="wish-account-initial" class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold" style="background:var(--bg-soft);color:var(--accent)"></div>
         <div class="min-w-0 flex-1">
           <p id="wish-account-name" class="truncate text-sm font-bold leading-tight"></p>
           <p id="wish-account-email" class="truncate text-xs font-light" style="color:var(--text-muted)"></p>
@@ -1019,16 +1020,35 @@ const quizFragrances = fragrances.map((f) => ({
   // Account strip inside the wishlist drawer.
   const acctStrip = document.getElementById("wish-account");
   const acctAvatar = document.getElementById("wish-account-avatar") as HTMLImageElement | null;
+  const acctInitial = document.getElementById("wish-account-initial");
   const acctName = document.getElementById("wish-account-name");
   const acctEmail = document.getElementById("wish-account-email");
   document.getElementById("wish-signout")?.addEventListener("click", () => { signOut(); });
+
+  // Show the photo when it loads, fall back to the user's initial otherwise.
+  // Google avatars (lh3.googleusercontent.com) 403 if a referrer is sent — the
+  // img carries referrerpolicy="no-referrer", but we still guard against a miss.
+  function showInitialFallback() {
+    acctAvatar?.classList.add("hidden");
+    acctInitial?.classList.remove("hidden");
+  }
+  acctAvatar?.addEventListener("error", showInitialFallback);
+  acctAvatar?.addEventListener("load", () => {
+    acctAvatar.classList.remove("hidden");
+    acctInitial?.classList.add("hidden");
+  });
 
   function syncAccountUI() {
     if (!acctStrip) return;
     if (currentUser) {
       acctStrip.classList.remove("hidden");
       acctStrip.classList.add("flex");
-      if (acctAvatar) acctAvatar.src = currentUser.photoURL || "";
+      const name = currentUser.displayName || currentUser.email || "Signed in";
+      if (acctInitial) acctInitial.textContent = name.trim().charAt(0).toUpperCase() || "?";
+      if (acctAvatar) {
+        const photo = currentUser.photoURL || "";
+        if (photo) { acctAvatar.src = photo; } else { showInitialFallback(); }
+      }
       if (acctName) acctName.textContent = currentUser.displayName || "Signed in";
       if (acctEmail) acctEmail.textContent = currentUser.email || "";
     } else {
