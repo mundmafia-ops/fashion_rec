@@ -589,6 +589,39 @@ const quizFragrances = fragrances.map((f) => ({
 <script>
   import { firebaseReady, signInWithGoogle, signOut, watchAuth, type User } from "@/lib/firebase";
 
+  // ─── Amazon marketplace localisation ─────────────────────────────────────
+  // Links are baked at build time as US search URLs (amazon.com, tag
+  // fragrandise-20). We ask /api/geo for the visitor's country (Vercel's
+  // geo-IP header) and, for India, swap the domain + Associates tag to the
+  // amazon.in store (fragrandise-21). localizeAmazon() always rebuilds from the
+  // `k` search term, so it's idempotent and safe to run repeatedly.
+  const AMZ = { tld: "com", tag: "fragrandise-20" };
+  function localizeAmazon(url: string): string {
+    if (!url || url === "#") return url || "#";
+    try {
+      const u = new URL(url, location.href);
+      if (!/(^|\.)amazon\./.test(u.hostname)) return url;
+      const k = u.searchParams.get("k");
+      if (!k) return url; // not a search link — leave untouched
+      return `https://www.amazon.${AMZ.tld}/s?k=${encodeURIComponent(k)}&tag=${AMZ.tag}`;
+    } catch { return url; }
+  }
+  function rewriteAmazonLinks() {
+    document.querySelectorAll<HTMLAnchorElement>('a[href*="amazon."]').forEach((a) => {
+      a.href = localizeAmazon(a.href);
+    });
+  }
+  fetch("/api/geo")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      if (d && d.country === "IN") {
+        AMZ.tld = "in";
+        AMZ.tag = "fragrandise-21";
+        rewriteAmazonLinks();
+      }
+    })
+    .catch(() => {});
+
   // ─── Theme toggle ───────────────────────────────────────────────────────
   const root = document.documentElement;
   const toggle = document.getElementById("theme-toggle");
@@ -1243,7 +1276,7 @@ const quizFragrances = fragrances.map((f) => ({
     setPerf("d-projection", "d-projection-dot", d.projection || "");
 
     const amazon = document.getElementById("d-amazon") as HTMLAnchorElement | null;
-    if (amazon) amazon.href = d.amazon || "#";
+    if (amazon) amazon.href = localizeAmazon(d.amazon || "#");
 
     // point the drawer's wishlist toggle at this fragrance + reflect saved state
     const dWish = document.getElementById("d-wishlist");
@@ -1627,7 +1660,7 @@ const quizFragrances = fragrances.map((f) => ({
           </div>
           <span class="text-base font-bold leading-tight">${f.brand}</span>
           <span class="text-sm font-light" style="color:var(--text-muted)">${f.name}</span>
-          <a href="${f.amazon}" target="_blank" rel="noopener" data-stop class="mt-auto pt-3 text-[0.6rem] uppercase tracking-[0.18em] transition-opacity hover:opacity-70" style="color:var(--accent)">Find on Amazon +</a>
+          <a href="${localizeAmazon(f.amazon)}" target="_blank" rel="noopener" data-stop class="mt-auto pt-3 text-[0.6rem] uppercase tracking-[0.18em] transition-opacity hover:opacity-70" style="color:var(--accent)">Find on Amazon +</a>
         </div>`;
     }).join("");
     stageEl.innerHTML = `
