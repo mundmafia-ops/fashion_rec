@@ -157,6 +157,11 @@ body {
 .hero-line {
   overflow: hidden;
   display: block;
+  /* Make room for descenders (the italic "g" in "Smelling") inside the
+     reveal mask, then cancel it with a matching negative margin so the line
+     spacing — and the rest of the layout — stays exactly the same. */
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
 }
 .hero-line > span {
   display: block;
@@ -242,6 +247,60 @@ body {
   display: none;
 }
 
+/* ── Phone layout: 2 compact cards per row instead of 1 tall card ──────────
+   On small screens the grid switches to 2 columns (see index.astro). To keep
+   the cards readable at half-width we shrink the padding + bottle stage, hide
+   the note pyramid (full notes still live in the tap-to-open drawer), and trim
+   the type. Full card returns at the `sm` breakpoint (≥640px). */
+@media (max-width: 639px) {
+  .card {
+    padding: 0.8rem;
+    border-radius: 1rem;
+  }
+  .card-stage {
+    height: 7.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .card-stage .bottle-img {
+    height: 6.5rem;
+  }
+  .card-stage .card-glow {
+    height: 5.5rem;
+    width: 5.5rem;
+  }
+  /* corner tags: smaller + tighter so they don't crowd the narrow card */
+  .card-stage > span {
+    padding: 0.12rem 0.4rem;
+    font-size: 0.46rem;
+  }
+  .card h3 {
+    font-size: 1rem;
+  }
+  /* notes pyramid hidden on phones — details open in the drawer on tap */
+  .card-notes {
+    display: none;
+  }
+  /* compact action row: keep "Find on Amazon" + arrow on one tidy line, drop
+     the redundant "Details +" label (the whole card already opens details),
+     and leave the heart pinned to the right. */
+  .card-actions {
+    margin-top: 0.7rem;
+    gap: 0.4rem;
+  }
+  .card-amazon {
+    font-size: 0.55rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .card-amazon svg {
+    width: 11px;
+    height: 11px;
+  }
+  .card-details {
+    display: none;
+  }
+}
+
 /* ─── Drawer / modal ───────────────────────────────────────────────────── */
 #drawer {
   visibility: hidden;
@@ -270,6 +329,103 @@ body {
     transform: translateY(100%);
   }
   #drawer.open .panel {
+    transform: translateY(0);
+  }
+}
+
+/* ─── Wishlist ─────────────────────────────────────────────────────────── */
+/* heart toggle (cards + quiz results) */
+.wish-btn {
+  color: var(--text-muted);
+  transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, transform 0.2s ease;
+}
+.wish-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.wish-btn:active {
+  transform: scale(0.9);
+}
+.wish-btn.is-wished {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.wish-btn.is-wished svg {
+  fill: var(--accent);
+}
+
+/* "Add to Wishlist" CTA inside the product drawer */
+.wish-cta {
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease;
+}
+.wish-cta:hover {
+  border-color: var(--accent);
+}
+.wish-cta.is-wished {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.wish-cta.is-wished .wish-cta-icon {
+  fill: var(--accent);
+}
+
+/* count badge on the header wishlist button */
+.wishlist-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.wishlist-badge[hidden] {
+  display: none;
+}
+
+.wish-remove:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* wishlist drawer slide-in (mirrors the product drawer) */
+#wishlist-drawer {
+  visibility: hidden;
+  pointer-events: none;
+}
+#wishlist-drawer.open {
+  visibility: visible;
+  pointer-events: auto;
+}
+#wishlist-drawer .scrim {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#wishlist-drawer.open .scrim {
+  opacity: 1;
+}
+#wishlist-drawer .wish-panel {
+  transform: translateX(100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#wishlist-drawer.open .wish-panel {
+  transform: translateX(0);
+}
+@media (max-width: 640px) {
+  #wishlist-drawer .wish-panel {
+    transform: translateY(100%);
+  }
+  #wishlist-drawer.open .wish-panel {
     transform: translateY(0);
   }
 }
@@ -762,6 +918,18 @@ body {
 #quiz.open .quiz-shell {
   opacity: 1;
   transform: none;
+}
+/* dissolve-close: kept visible while it fades, then JS removes .open/.closing */
+#quiz.closing {
+  visibility: visible;
+  pointer-events: none;
+}
+#quiz.closing .quiz-scrim {
+  opacity: 0;
+}
+#quiz.closing .quiz-shell {
+  opacity: 0;
+  transform: translateY(10px) scale(0.992);
 }
 .quiz-q {
   animation: quizIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;

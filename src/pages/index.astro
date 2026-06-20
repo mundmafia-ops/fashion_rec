@@ -6,6 +6,13 @@ import { FAMILIES, GENDERS, type Gender } from "@/lib/types";
 
 const total = fragrances.length;
 
+// Catalogue grid is rendered alphabetically (by brand, then name). Because the
+// client-side filters only toggle card visibility — they never reorder the DOM —
+// the alphabetical order is preserved automatically while filtering/searching.
+const sortedFragrances = [...fragrances].sort((a, b) =>
+  `${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`, "en", { sensitivity: "base" })
+);
+
 // Build a 12-bottle carousel for a gender: 3 Summer · 3 Winter · 3 Day · 3 Night
 // (Summer/Day share the warm pool, Winter/Night the cool pool.)
 function buildCarousel(gender: Gender) {
@@ -104,7 +111,7 @@ const quizFragrances = fragrances.map((f) => ({
         </button>
       </nav>
       <div class="flex items-center gap-3 sm:gap-4">
-        <button id="search-jump" aria-label="Search fragrances" class="hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
+        <button id="search-jump" aria-label="Search fragrances" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text-muted)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
         </button>
         <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode" title="Toggle theme">
@@ -116,8 +123,9 @@ const quizFragrances = fragrances.map((f) => ({
             </svg>
           </span>
         </button>
-        <button aria-label="Cart" class="hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        <button id="wishlist-open" aria-label="Wishlist" title="Wishlist" class="relative hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
+          <svg class="wish-heart" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+          <span id="wishlist-count" class="wishlist-badge" hidden>0</span>
         </button>
         <!-- mobile hamburger -->
         <button id="menu-toggle" aria-label="Menu" aria-expanded="false" class="grid h-9 w-9 place-items-center rounded-full border md:hidden" style="border-color:var(--border-strong);color:var(--text)">
@@ -136,6 +144,7 @@ const quizFragrances = fragrances.map((f) => ({
         <button class="nav-link mobile-item" data-nav-mood="night">Night</button>
         <button class="js-open-dict mobile-item" style="color:var(--accent)">Dictionary</button>
         <button id="search-jump-m" class="mobile-item">Search</button>
+        <button id="wishlist-open-m" class="mobile-item">Wishlist <span id="wishlist-count-m"></span></button>
       </div>
     </div>
   </header>
@@ -146,10 +155,9 @@ const quizFragrances = fragrances.map((f) => ({
       <div class="relative mx-auto grid w-full max-w-7xl items-end gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <!-- left: copy -->
         <div class="min-w-0">
-          <h1 class="font-display text-[2.7rem] font-light leading-[0.95] tracking-tight sm:text-6xl lg:text-[5rem]">
+          <h1 class="font-display text-[3.1rem] font-light leading-[1.06] tracking-tight sm:text-7xl lg:text-[6rem]">
             <span class="hero-line"><span style="--d:120ms">A Guide for</span></span>
             <span class="hero-line"><span class="italic" style="--d:240ms;color:var(--accent)">Smelling Good.</span></span>
-            <span class="hero-line"><span style="--d:360ms">Fashion Blended.</span></span>
           </h1>
           <p class="mt-8 max-w-md text-base leading-relaxed fade-in" style="--d:680ms;color:var(--text-muted)">
             Welcome to your personal fragrance journey. Explore our curated collection of exceptional scents, from exclusive luxury houses to brilliant everyday discoveries, all thoughtfully organized by season, occasion, and profile.
@@ -336,8 +344,8 @@ const quizFragrances = fragrances.map((f) => ({
               <button id="grid-search-clear" class="hidden text-xs uppercase tracking-[0.14em]" style="color:var(--accent)">Clear</button>
             </div>
             <p id="result-count" class="mb-5 text-xs uppercase tracking-[0.2em]" style="color:var(--text-faint)">Showing {total} of {total}</p>
-            <div id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {fragrances.map((f, i) => <FragranceCard f={f} index={i} />)}
+            <div id="grid" class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
+              {sortedFragrances.map((f, i) => <FragranceCard f={f} index={i} />)}
             </div>
             <p id="empty-state" class="hidden py-20 text-center font-display text-2xl" style="color:var(--text-faint)">
               Nothing matches that mood. Try fewer filters.
@@ -394,7 +402,7 @@ const quizFragrances = fragrances.map((f) => ({
       </div>
       <div class="mt-16 flex flex-col gap-3 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between" style="border-color:var(--border);color:var(--text-faint)">
         <p>© 2026 Fragrandise. All rights reserved.</p>
-        <p>A Guide for Smelling Good. Fashion Blended.</p>
+        <p>A Guide for Smelling Good.</p>
       </div>
     </div>
   </footer>
@@ -435,14 +443,47 @@ const quizFragrances = fragrances.map((f) => ({
         <p class="eyebrow mt-8 mb-3">Note Pyramid</p>
         <div class="space-y-3" id="d-notes"></div>
 
-        <p class="eyebrow mt-8 mb-3">Where to Buy</p>
+        <p class="eyebrow mt-8 mb-3">Save &amp; Shop</p>
         <div class="flex flex-col gap-3">
+          <button id="d-wishlist" type="button" data-wish data-id="" class="wish-cta flex items-center justify-between rounded-xl border px-5 py-4 text-sm" style="border-color:var(--border-strong)">
+            <span class="wish-cta-label font-medium">Add to Wishlist</span>
+            <svg class="wish-cta-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+          </button>
           <a id="d-amazon" href="#" target="_blank" rel="noopener" class="btn-accent flex items-center justify-between rounded-xl px-5 py-4 text-sm">
             <span class="font-medium">Find it on Amazon</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M7 7h10v10"></path></svg>
           </a>
         </div>
       </div>
+    </aside>
+  </div>
+
+  <!-- ───────────────────────── Wishlist drawer ───────────────────────── -->
+  <div id="wishlist-drawer" class="fixed inset-0 z-[68]">
+    <div class="scrim absolute inset-0" style="background:rgba(0,0,0,0.6)" data-close-wishlist></div>
+    <aside class="wish-panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-y-auto sm:max-w-lg" style="background:var(--bg-soft)">
+      <div class="flex items-center justify-between px-7 pt-7">
+        <div>
+          <p class="eyebrow">Your saved scents</p>
+          <h3 class="font-display text-3xl font-light tracking-tight">Wishlist</h3>
+        </div>
+        <button data-close-wishlist aria-label="Close" class="grid h-9 w-9 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <p class="px-7 pt-3 text-sm" style="color:var(--text-muted)">A place to keep the fragrances you're curious about. This is an editorial blog — nothing to buy here, just your personal shortlist (saved on this device).</p>
+
+      <!-- empty state -->
+      <div id="wishlist-empty" class="flex flex-1 flex-col items-center justify-center px-7 py-16 text-center">
+        <div class="grid h-16 w-16 place-items-center rounded-full border" style="border-color:var(--border-strong);color:var(--text-faint)">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+        </div>
+        <p class="font-display mt-5 text-xl" style="color:var(--text-muted)">Nothing saved yet.</p>
+        <p class="mt-2 max-w-xs text-sm" style="color:var(--text-faint)">Tap the heart on any fragrance — or take the quiz — to start your shortlist.</p>
+      </div>
+
+      <!-- list -->
+      <div id="wishlist-list" class="hidden flex-col gap-3 px-7 pb-10 pt-5"></div>
     </aside>
   </div>
 
@@ -757,6 +798,130 @@ const quizFragrances = fragrances.map((f) => ({
   }
   applyFilters(); // enforce the default (men) gender view on load
 
+  // ─── Wishlist ────────────────────────────────────────────────────────────
+  // A personal shortlist of fragrances. This is an editorial blog, so nothing
+  // is purchasable — the wishlist just remembers what you're curious about,
+  // persisted to localStorage on the visitor's own device.
+  const WKEY = "fr-wishlist";
+  function readWishlist(): Set<string> {
+    try { return new Set<string>(JSON.parse(localStorage.getItem(WKEY) || "[]")); }
+    catch (e) { return new Set<string>(); }
+  }
+  let wishlist = readWishlist();
+  function saveWishlist() {
+    try { localStorage.setItem(WKEY, JSON.stringify([...wishlist])); } catch (e) {}
+  }
+
+  // id → { brand, name, image, accent } lookup, reused from the quiz payload.
+  const wishLookup: Record<string, any> = {};
+  try {
+    const arr = JSON.parse(document.getElementById("quiz-frag-data")?.textContent || "[]");
+    for (const f of arr) wishLookup[f.id] = f;
+  } catch (e) {}
+
+  const wishDrawer = document.getElementById("wishlist-drawer");
+  const wishListEl = document.getElementById("wishlist-list");
+  const wishEmptyEl = document.getElementById("wishlist-empty");
+  const wishCountEl = document.getElementById("wishlist-count");
+  const wishCountMEl = document.getElementById("wishlist-count-m");
+
+  function syncWishUI() {
+    document.querySelectorAll<HTMLElement>("[data-wish]").forEach((btn) => {
+      const id = btn.getAttribute("data-id") || "";
+      const on = !!id && wishlist.has(id);
+      btn.setAttribute("aria-pressed", String(on));
+      btn.classList.toggle("is-wished", on);
+      if (btn.id === "d-wishlist") {
+        const label = btn.querySelector(".wish-cta-label");
+        if (label) label.textContent = on ? "Saved to Wishlist" : "Add to Wishlist";
+      }
+    });
+    const n = wishlist.size;
+    if (wishCountEl) { wishCountEl.textContent = String(n); (wishCountEl as HTMLElement).hidden = n === 0; }
+    if (wishCountMEl) wishCountMEl.textContent = n ? `(${n})` : "";
+    if (wishDrawer?.classList.contains("open")) renderWishlist();
+  }
+
+  function renderWishlist() {
+    if (!wishListEl || !wishEmptyEl) return;
+    const ids = [...wishlist];
+    if (ids.length === 0) {
+      wishListEl.classList.add("hidden"); wishListEl.classList.remove("flex");
+      wishEmptyEl.classList.remove("hidden"); wishEmptyEl.classList.add("flex");
+      return;
+    }
+    wishEmptyEl.classList.add("hidden"); wishEmptyEl.classList.remove("flex");
+    wishListEl.classList.remove("hidden"); wishListEl.classList.add("flex");
+    wishListEl.innerHTML = ids.map((id) => {
+      const f = wishLookup[id];
+      if (!f) return "";
+      const from = f.accent?.[0] || "#888";
+      return `
+        <div class="wish-row flex items-center gap-4 rounded-2xl border p-3" style="border-color:var(--border);background:var(--surface)">
+          <div class="relative grid h-16 w-16 shrink-0 place-items-center rounded-xl" style="background:var(--bg-soft)">
+            <div class="absolute inset-0 m-auto h-10 w-10 rounded-full" style="background:radial-gradient(circle, ${from}, transparent 70%);filter:blur(14px);opacity:.6"></div>
+            <img src="${f.image}" alt="${f.brand} ${f.name}" class="relative h-14 w-auto object-contain" />
+          </div>
+          <button type="button" class="min-w-0 flex-1 text-left" data-wish-view="${id}">
+            <p class="truncate text-sm font-bold leading-tight">${f.brand}</p>
+            <p class="truncate text-xs font-light" style="color:var(--text-muted)">${f.name}</p>
+            <span class="mt-1 inline-block text-[0.58rem] uppercase tracking-[0.16em]" style="color:var(--accent)">View details +</span>
+          </button>
+          <button type="button" aria-label="Remove from wishlist" title="Remove" class="wish-remove grid h-8 w-8 shrink-0 place-items-center rounded-full border" data-wish-remove="${id}" style="border-color:var(--border-strong);color:var(--text-muted)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>`;
+    }).join("");
+    wishListEl.querySelectorAll<HTMLElement>("[data-wish-remove]").forEach((b) =>
+      b.addEventListener("click", () => { wishlist.delete(b.dataset.wishRemove || ""); saveWishlist(); syncWishUI(); }));
+    wishListEl.querySelectorAll<HTMLElement>("[data-wish-view]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const gridBtn = document.querySelector<HTMLElement>(`#grid [data-open-drawer][data-id="${b.dataset.wishView}"]`);
+        if (gridBtn) openDrawer(gridBtn);
+      }));
+  }
+
+  function toggleWish(id: string) {
+    if (!id) return;
+    if (wishlist.has(id)) wishlist.delete(id); else wishlist.add(id);
+    saveWishlist();
+    syncWishUI();
+  }
+
+  // Bind every heart toggle once (idempotent — safe to re-run on injected DOM).
+  function bindWishButtons(scope: ParentNode = document) {
+    scope.querySelectorAll<HTMLElement>("[data-wish]").forEach((btn) => {
+      if (btn.dataset.wishBound) return;
+      btn.dataset.wishBound = "1";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleWish(btn.getAttribute("data-id") || "");
+      });
+      // span-based hearts (inside the card <button>) need explicit key handling
+      btn.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        e.stopPropagation();
+        toggleWish(btn.getAttribute("data-id") || "");
+      });
+    });
+  }
+
+  function openWishlist() { wishDrawer?.classList.add("open"); document.body.style.overflow = "hidden"; renderWishlist(); }
+  function closeWishlist() {
+    wishDrawer?.classList.remove("open");
+    const stillLocked = document.getElementById("drawer")?.classList.contains("open") ||
+      document.getElementById("quiz")?.classList.contains("open");
+    document.body.style.overflow = stillLocked ? "hidden" : "";
+  }
+  document.getElementById("wishlist-open")?.addEventListener("click", openWishlist);
+  document.getElementById("wishlist-open-m")?.addEventListener("click", openWishlist);
+  document.querySelectorAll("[data-close-wishlist]").forEach((el) => el.addEventListener("click", closeWishlist));
+
+  bindWishButtons();
+  syncWishUI();
+
   // Carousel gender toggle: single-select, controls the carousel bottles only.
   document.querySelectorAll<HTMLButtonElement>(".gender-link[data-gender]").forEach((btn) =>
     btn.addEventListener("click", () => {
@@ -892,6 +1057,11 @@ const quizFragrances = fragrances.map((f) => ({
 
     const amazon = document.getElementById("d-amazon") as HTMLAnchorElement | null;
     if (amazon) amazon.href = d.amazon || "#";
+
+    // point the drawer's wishlist toggle at this fragrance + reflect saved state
+    const dWish = document.getElementById("d-wishlist");
+    if (dWish) dWish.setAttribute("data-id", d.id || "");
+    syncWishUI();
 
     drawer?.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -1249,8 +1419,13 @@ const quizFragrances = fragrances.map((f) => ({
       const f = r.f;
       if (!f) return "";
       return `
-        <button class="quiz-result-card group flex flex-col items-center p-4 text-center sm:items-start sm:text-left" data-result-id="${f.id}">
-          <span class="text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--accent)">${r.label}</span>
+        <div class="quiz-result-card group flex cursor-pointer flex-col items-center p-4 text-center sm:items-start sm:text-left" role="button" tabindex="0" data-result-id="${f.id}">
+          <div class="flex w-full items-center justify-between gap-2">
+            <span class="text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--accent)">${r.label}</span>
+            <button type="button" data-stop data-wish data-id="${f.id}" aria-pressed="false" aria-label="Add ${f.brand} ${f.name} to wishlist" title="Add to wishlist" class="wish-btn grid h-8 w-8 shrink-0 place-items-center rounded-full border" style="border-color:var(--border-strong);background:var(--bg-soft)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+            </button>
+          </div>
           <div class="relative my-3 flex h-36 w-full items-center justify-center">
             <div class="absolute inset-0 m-auto h-24 w-24 rounded-full" style="background:radial-gradient(circle, ${f.accent[0]}, transparent 70%);filter:blur(28px);opacity:.5"></div>
             <img src="${f.image}" alt="${f.brand} ${f.name}" class="relative h-full w-auto object-contain" />
@@ -1258,7 +1433,7 @@ const quizFragrances = fragrances.map((f) => ({
           <span class="text-base font-bold leading-tight">${f.brand}</span>
           <span class="text-sm font-light" style="color:var(--text-muted)">${f.name}</span>
           <span class="mt-3 text-[0.6rem] uppercase tracking-[0.18em]" style="color:var(--text-faint)">View details +</span>
-        </button>`;
+        </div>`;
     }).join("");
     stageEl.innerHTML = `
       <div class="quiz-q">
@@ -1267,32 +1442,62 @@ const quizFragrances = fragrances.map((f) => ({
         <p class="mt-4 max-w-xl text-sm" style="color:var(--text-muted)">Based on your ${QUESTIONS.length} answers — the best match for each season and time of day, within your budget.</p>
         <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">${cards}</div>
         <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+          <button id="quiz-wishlist-all" class="btn-accent inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+            Add to Wishlist
+          </button>
           <button id="quiz-restart" class="btn-ghost rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">Retake quiz</button>
-          <button id="quiz-explore" class="btn-accent rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">Explore full catalog</button>
+          <button id="quiz-explore" class="btn-ghost rounded-full px-6 py-3 text-xs uppercase tracking-[0.18em]">Explore full catalog</button>
         </div>
       </div>`;
-    stageEl.querySelectorAll<HTMLButtonElement>("[data-result-id]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.resultId || "";
+    const recIds = recs.map((r) => r.f?.id).filter(Boolean) as string[];
+    stageEl.querySelectorAll<HTMLElement>("[data-result-id]").forEach((card) => {
+      const open = (e: Event) => {
+        if ((e.target as HTMLElement).closest("[data-stop]")) return; // heart handled separately
+        const id = card.dataset.resultId || "";
         // Keep the quiz results open underneath; the drawer layers on top, so
         // closing the drawer returns to the four assorted picks.
         const gridBtn = document.querySelector<HTMLElement>(`#grid [data-open-drawer][data-id="${id}"]`);
         if (gridBtn) openDrawer(gridBtn);
-      });
+      };
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e); } });
     });
+    document.getElementById("quiz-wishlist-all")?.addEventListener("click", () => {
+      // Scenario 1: save all four picks, then dissolve the quiz away so the
+      // visitor lands in the catalogue to browse the rest of the collection.
+      recIds.forEach((id) => wishlist.add(id));
+      saveWishlist();
+      syncWishUI();
+      closeQuiz(() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" }));
+    });
+    bindWishButtons(stageEl);
+    syncWishUI();
     document.getElementById("quiz-restart")?.addEventListener("click", startQuiz);
     document.getElementById("quiz-explore")?.addEventListener("click", () => {
-      closeQuiz();
-      document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" });
+      // Scenario 2: visitor hearted picks individually, now heads to the catalogue.
+      closeQuiz(() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" }));
     });
     document.querySelector(".quiz-scroll")?.scrollTo({ top: 0 });
   }
 
-  function startQuiz() { qi = 0; answers.length = 0; quizEl?.classList.add("open"); document.body.style.overflow = "hidden"; renderQuestion(); }
-  function closeQuiz() { quizEl?.classList.remove("open"); document.body.style.overflow = ""; }
+  function startQuiz() { qi = 0; answers.length = 0; quizEl?.classList.remove("closing"); quizEl?.classList.add("open"); document.body.style.overflow = "hidden"; renderQuestion(); }
+  // Dissolve-close: fade the overlay out before tearing it down, so leaving the
+  // quiz never feels abrupt. `after` runs once the fade completes (e.g. scroll).
+  let quizClosing = 0;
+  function closeQuiz(after?: () => void) {
+    if (!quizEl || !quizEl.classList.contains("open")) { after?.(); return; }
+    quizEl.classList.add("closing");
+    window.clearTimeout(quizClosing);
+    quizClosing = window.setTimeout(() => {
+      quizEl.classList.remove("open", "closing");
+      document.body.style.overflow = document.getElementById("drawer")?.classList.contains("open") ? "hidden" : "";
+      after?.();
+    }, 460);
+  }
 
   document.getElementById("open-quiz")?.addEventListener("click", startQuiz);
-  document.getElementById("quiz-close")?.addEventListener("click", closeQuiz);
+  document.getElementById("quiz-close")?.addEventListener("click", () => closeQuiz());
 
   // ─── Hero CTA: cursor-mask paint blob that "drags" toward the pointer ────
   const quizBtn = document.getElementById("open-quiz") as HTMLElement | null;
@@ -1330,6 +1535,7 @@ const quizFragrances = fragrances.map((f) => ({
     if (e.key !== "Escape") return;
     // The drawer's own Escape handler closes it first; don't also close the quiz.
     if (drawer?.classList.contains("open")) return;
+    if (wishDrawer?.classList.contains("open")) { closeWishlist(); return; }
     if (quizEl?.classList.contains("open")) closeQuiz();
     if (dict?.classList.contains("open")) closeDict();
   });
