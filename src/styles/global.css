@@ -612,6 +612,26 @@ body {
   }
 }
 
+/* Touch / small-screen flicker control. Mirrors the JS `noBlur` query.
+   Running the floatY animation on all 12 drop-shadowed bottles, plus 12 large
+   blurred auras, re-rasterizes every frame on mobile GPUs and flickers.
+   Restrict the expensive paint to the single active bottle. */
+@media (max-width: 640px), (hover: none) {
+  .cr-float {
+    animation: none;
+  }
+  .cr-item.is-active .cr-float {
+    animation: floatY 3.4s ease-in-out infinite;
+  }
+  .cr-aura {
+    opacity: 0;
+    filter: blur(40px);
+  }
+  .cr-item.is-active .cr-aura {
+    opacity: 0.9;
+  }
+}
+
 /* ─── Big category nav ─────────────────────────────────────────────────── */
 .bignav {
   font-family: var(--font-display);
