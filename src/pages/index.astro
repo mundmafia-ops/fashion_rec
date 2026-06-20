@@ -125,7 +125,8 @@ const quizFragrances = fragrances.map((f) => ({
           </span>
         </button>
         <button id="wishlist-open" aria-label="Wishlist" title="Wishlist" class="relative hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
-          <svg class="wish-heart" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+          <svg id="wishlist-icon-heart" class="wish-heart" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+          <svg id="wishlist-icon-signin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>
           <span id="wishlist-count" class="wishlist-badge" hidden>0</span>
         </button>
         <!-- mobile hamburger -->
@@ -794,7 +795,7 @@ const quizFragrances = fragrances.map((f) => ({
     function endDrag(e?: PointerEvent) {
       if (!dragging) return;
       dragging = false;
-      carouselEl.classList.remove("dragging");
+      carouselEl?.classList.remove("dragging");
       // a tap (no real drag) → open that bottle's details
       if (moved <= 6 && e) {
         const el = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest(".cr-item");
@@ -917,6 +918,9 @@ const quizFragrances = fragrances.map((f) => ({
   const wishEmptyEl = document.getElementById("wishlist-empty");
   const wishCountEl = document.getElementById("wishlist-count");
   const wishCountMEl = document.getElementById("wishlist-count-m");
+  const wishOpenBtn = document.getElementById("wishlist-open");
+  const wishIconHeart = document.getElementById("wishlist-icon-heart");
+  const wishIconSignin = document.getElementById("wishlist-icon-signin");
 
   function syncWishUI() {
     document.querySelectorAll<HTMLElement>("[data-wish]").forEach((btn) => {
@@ -1071,7 +1075,22 @@ const quizFragrances = fragrances.map((f) => ({
     acctInitial?.classList.add("hidden");
   });
 
+  // Swap the header trigger between a "sign in" arrow (signed-out) and the
+  // heart (signed in). Only meaningful when Firebase auth is configured —
+  // otherwise the wishlist is a local-only shortlist and stays a heart.
+  function syncWishlistTrigger() {
+    const signedOut = firebaseReady && !currentUser;
+    wishIconHeart?.style.setProperty("display", signedOut ? "none" : "");
+    wishIconSignin?.style.setProperty("display", signedOut ? "" : "none");
+    if (wishOpenBtn) {
+      const label = signedOut ? "Sign in" : "Wishlist";
+      wishOpenBtn.setAttribute("aria-label", label);
+      wishOpenBtn.setAttribute("title", label);
+    }
+  }
+
   function syncAccountUI() {
+    syncWishlistTrigger();
     if (!acctStrip) return;
     if (currentUser) {
       acctStrip.classList.remove("hidden");
@@ -1090,15 +1109,21 @@ const quizFragrances = fragrances.map((f) => ({
     }
   }
 
+  // Reflect the signed-out state immediately; watchAuth refines it once auth resolves.
+  syncWishlistTrigger();
+
   if (firebaseReady) {
     watchAuth((user) => {
       currentUser = user;
       syncAccountUI();
-      if (user && pendingAction) {
-        // Finish the action the visitor started before the login prompt.
-        const action = pendingAction;
-        pendingAction = null;
-        action();
+      if (user) {
+        // Finish the action the visitor started before the login prompt (if any),
+        // then dismiss the modal — covers header-initiated sign-ins too.
+        if (pendingAction) {
+          const action = pendingAction;
+          pendingAction = null;
+          action();
+        }
         closeSignInDOM();
       }
     });
@@ -1135,7 +1160,13 @@ const quizFragrances = fragrances.map((f) => ({
     if (frRequestClose("wishlist")) return;
     closeWishlistDOM();
   }
-  document.getElementById("wishlist-open")?.addEventListener("click", openWishlist);
+  // When signed out (and auth is configured) the header trigger is a sign-in
+  // arrow, so it opens the login modal instead of the wishlist drawer.
+  function openWishlistOrSignIn() {
+    if (firebaseReady && !currentUser) { openSignIn(); return; }
+    openWishlist();
+  }
+  document.getElementById("wishlist-open")?.addEventListener("click", openWishlistOrSignIn);
   document.getElementById("wishlist-open-m")?.addEventListener("click", openWishlist);
   document.querySelectorAll("[data-close-wishlist]").forEach((el) => el.addEventListener("click", closeWishlist));
 
