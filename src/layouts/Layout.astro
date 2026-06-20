@@ -73,7 +73,7 @@ const {
 
         let mx = window.innerWidth / 2;
         let my = window.innerHeight / 2;
-        let dx = mx, dy = my, ax = mx, ay = my;
+        let ax = mx, ay = my;
         const pts = Array.from({ length: N }, () => ({ x: mx, y: my }));
         let active = false;
 
@@ -91,6 +91,8 @@ const {
               document.body.classList.add("cursor-on");
             }
             document.body.classList.remove("cursor-hidden");
+            // Snap the dot to the pointer 1:1 for a native, lag-free feel
+            dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
             const t = e.target as Element;
             const big = !!(t.closest && t.closest(AURA_SEL));
             const link = !big && !!(t.closest && t.closest(LINK_SEL));
@@ -109,11 +111,8 @@ const {
         );
 
         function frame() {
-          dx += (mx - dx) * 0.5;
-          dy += (my - dy) * 0.5;
           ax += (mx - ax) * 0.16;
           ay += (my - ay) * 0.16;
-          dot.style.transform = `translate(${dx}px, ${dy}px) translate(-50%, -50%)`;
           aura.style.transform = `translate(${ax}px, ${ay}px) translate(-50%, -50%)`;
 
           let px = mx, py = my;
