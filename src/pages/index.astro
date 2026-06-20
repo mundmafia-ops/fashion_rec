@@ -1458,9 +1458,6 @@ const quizFragrances = fragrances.map((f) => ({
           <div class="flex w-full items-start justify-between gap-2">
             <span class="pt-1 text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--accent)">${r.label}</span>
             <div class="flex shrink-0 items-center gap-2">
-              <a href="${f.amazon}" target="_blank" rel="noopener" data-stop aria-label="Shop ${f.brand} ${f.name}" title="Shop this fragrance" class="grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-colors hover:text-[var(--accent)]" style="border-color:var(--border-strong);background:var(--bg-soft);color:var(--text-muted)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
-              </a>
               <button type="button" data-stop data-wish data-id="${f.id}" aria-pressed="false" aria-label="Add ${f.brand} ${f.name} to wishlist" title="Add to wishlist" class="wish-btn grid h-8 w-8 shrink-0 place-items-center rounded-full border" style="border-color:var(--border-strong);background:var(--bg-soft)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
               </button>
@@ -1472,7 +1469,7 @@ const quizFragrances = fragrances.map((f) => ({
           </div>
           <span class="text-base font-bold leading-tight">${f.brand}</span>
           <span class="text-sm font-light" style="color:var(--text-muted)">${f.name}</span>
-          <span class="mt-auto pt-3 text-[0.6rem] uppercase tracking-[0.18em]" style="color:var(--text-faint)">View details +</span>
+          <a href="${f.amazon}" target="_blank" rel="noopener" data-stop class="mt-auto pt-3 text-[0.6rem] uppercase tracking-[0.18em] transition-opacity hover:opacity-70" style="color:var(--accent)">Find on Amazon +</a>
         </div>`;
     }).join("");
     stageEl.innerHTML = `
