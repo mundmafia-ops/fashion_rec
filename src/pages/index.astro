@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import FragranceCard from "@/components/FragranceCard.astro";
-import { fragrances, fragranceImage, genderOf, shopLinks } from "@/data/fragrances";
+import { fragrances, fragranceImage, genderOf, priceBandOf, shopLinks } from "@/data/fragrances";
 import { FAMILIES, GENDERS, type Gender } from "@/lib/types";
 
 const total = fragrances.length;
@@ -88,6 +88,7 @@ const quizFragrances = fragrances.map((f) => ({
   times: f.times,
   houseType: f.houseType,
   priceTier: f.priceTier,
+  priceBand: priceBandOf(f),
   gender: genderOf(f),
   families: f.families,
   accent: f.accent,
@@ -126,7 +127,7 @@ const quizFragrances = fragrances.map((f) => ({
         </button>
         <button id="wishlist-open" aria-label="Wishlist" title="Wishlist" class="relative hidden h-9 w-9 place-items-center rounded-full border sm:grid" style="border-color:var(--border-strong);color:var(--text-muted)">
           <svg id="wishlist-icon-heart" class="wish-heart" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
-          <svg id="wishlist-icon-signin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>
+          <svg id="wishlist-icon-signin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></svg>
           <span id="wishlist-count" class="wishlist-badge" hidden>0</span>
         </button>
         <!-- mobile hamburger -->
@@ -298,8 +299,9 @@ const quizFragrances = fragrances.map((f) => ({
               <div class="filter-group">
                 <p class="eyebrow mb-3">Price Tier</p>
                 <div class="flex flex-wrap gap-2">
-                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="budget" aria-pressed="false">Budget</button>
-                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="premium" aria-pressed="false">Premium</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="value" aria-pressed="false">Value · under ₹2,300</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="mid" aria-pressed="false">Mid · ₹2,300–6,000</button>
+                  <button class="chip rounded-full px-3.5 py-1.5 text-xs" data-group="price" data-value="luxury" aria-pressed="false">Luxury · ₹6,000+</button>
                 </div>
               </div>
 
@@ -1405,6 +1407,7 @@ const quizFragrances = fragrances.map((f) => ({
     id: string; brand: string; name: string; image: string; amazon: string;
     season: "summer" | "winter"; times: ("day" | "night")[];
     houseType: "niche" | "designer"; priceTier: "premium" | "budget";
+    priceBand: "value" | "mid" | "luxury";
     gender: "men" | "women" | "unisex";
     families: string[]; accent: [string, string];
   };
@@ -1415,22 +1418,23 @@ const quizFragrances = fragrances.map((f) => ({
   let quizFrags: QFrag[] = [];
   try { quizFrags = JSON.parse(document.getElementById("quiz-frag-data")?.textContent || "[]"); } catch (e) {}
 
-  // Effect keys: summer/winter/day/night/affordable/expensive/designer/niche,
-  // "p:<Profile>" for olfactory profiles, "proj:Low|Moderate|High" for projection.
+  // Effect keys: summer/winter/day/night/designer/niche, "pb:value|mid|luxury"
+  // for the three price bands, "p:<Profile>" for olfactory profiles, and
+  // "proj:Low|Moderate|High" for projection.
   const QUESTIONS: Question[] = [
     // ── Phase 0 · Who It's For ──
     { phase: "Who It's For", q: "Who are we finding a signature scent for?", options: [
-      { label: "Me — I lean toward classic men's fragrances.", effects: { "g:men": 3 } },
-      { label: "Me — I lean toward women's fragrances.", effects: { "g:women": 3 } },
-      { label: "Surprise me — I love clean, shareable unisex scents.", effects: { "g:unisex": 3 } },
+      { label: "I'm looking for perfumes that suit men.", effects: { "g:men": 3 } },
+      { label: "I'm looking for perfumes that suit women.", effects: { "g:women": 3 } },
+      { label: "I'm looking for perfumes that suit everyone.", effects: { "g:unisex": 3 } },
     ]},
     { phase: "Who It's For", q: "Which character do you want your scent to project?", options: [
-      { label: "Sharp, bold, and traditionally masculine.", effects: { "g:men": 2 } },
-      { label: "Soft, radiant, and traditionally feminine.", effects: { "g:women": 2 } },
-      { label: "Modern and androgynous — anyone could wear it.", effects: { "g:unisex": 2 } },
+      { label: "I want a scent that is primarily appealing to women.", effects: { "g:men": 2 } },
+      { label: "I want a scent that is primarily appealing to men.", effects: { "g:women": 2 } },
+      { label: "I want a scent that is universally appealing.", effects: { "g:unisex": 2 } },
     ]},
     // ── Phase 1 · The Canvas ──
-    { phase: "The Canvas", q: "How would you describe your ideal weekend escape?", options: [
+    { phase: "The Canvas", q: "How would you describe your vibe?", options: [
       { label: "A sun-drenched coastline or a vibrant open-air café.", effects: { summer: 2, day: 2 } },
       { label: "Cozying up in a wooden cabin or a dimly lit lounge.", effects: { winter: 2, night: 2 } },
       { label: "A brisk morning walk through a botanical garden.", effects: { summer: 2, day: 2 } },
@@ -1452,8 +1456,9 @@ const quizFragrances = fragrances.map((f) => ({
     ]},
     // ── Phase 2 · The Investment ──
     { phase: "The Investment", q: "What is your budget for a new perfume?", options: [
-      { label: "Budget-friendly — smells expensive, easy on my wallet.", effects: { affordable: 3 } },
-      { label: "Premium / luxury — I'll pay for a top-tier bottle.", effects: { expensive: 3 } },
+      { label: "Strictly budget — punches well above its price.", effects: { "pb:value": 3, "pb:mid": 1 } },
+      { label: "Best bang for the buck — smart value, no overpaying.", effects: { "pb:mid": 3 } },
+      { label: "Premium and worth every penny.", effects: { "pb:luxury": 3 } },
     ]},
     { phase: "The Investment", q: "Which answer makes you feel best when asked what you're wearing?", options: [
       { label: "A recognisable fashion house (Versace, Tom Ford, LV).", effects: { designer: 3 } },
@@ -1461,16 +1466,15 @@ const quizFragrances = fragrances.map((f) => ({
       { label: "I don't care about the name — only that it smells incredible.", effects: { designer: 1, niche: 1 } },
     ]},
     { phase: "The Investment", q: "How do you feel about Middle-Eastern alternative houses (Lattafa, Afnan)?", options: [
-      { label: "Love them — incredible value and viral power for the price.", effects: { affordable: 2, designer: 1 } },
-      { label: "I prefer classic European / Western designer or niche.", effects: { expensive: 1, niche: 1 } },
+      { label: "Love them — incredible value and viral power for the price.", effects: { "pb:value": 1, "pb:mid": 2, designer: 1 } },
+      { label: "I prefer classic European / Western designer or niche.", effects: { "pb:luxury": 1, niche: 1 } },
       { label: "Not so sure — I'm new to fragrances.", effects: {} },
     ]},
     // ── Phase 3 · The Presence ──
-    { phase: "The Presence", q: "What's your ultimate goal when entering a room?", options: [
-      { label: "A strong trail — people should smell me after I pass.", effects: { "proj:High": 3 } },
-      { label: "A quiet, intimate presence — only close hugs notice it.", effects: { "proj:Low": 3 } },
-      { label: "A solid arms-length cloud that commands respect.", effects: { "proj:Moderate": 3 } },
-      { label: "No preference — surprise me.", effects: {} },
+    { phase: "The Presence", q: "How much projection should your scent have?", options: [
+      { label: "Strong — a trail that's noticed from across the room.", effects: { "proj:High": 3 } },
+      { label: "Moderate — an arm's-length presence that commands respect.", effects: { "proj:Moderate": 3 } },
+      { label: "Intimate — quiet and close, noticed only within personal space.", effects: { "proj:Low": 3 } },
     ]},
     { phase: "The Presence", q: "How long do you need this fragrance to last?", options: [
       { label: "Workhorse longevity (8+ hrs) — survives a full day or night.", effects: { "proj:High": 2, winter: 1, "p:Gourmand": 1 } },
@@ -1481,10 +1485,10 @@ const quizFragrances = fragrances.map((f) => ({
       { label: "They give me a headache — I want clean, airy, refreshing.", effects: { summer: 2, "p:Fresh": 1, "p:Citrus": 1 } },
     ]},
     // ── Phase 4 · Olfactory Archetypes ──
-    { phase: "Olfactory Archetypes", q: "Which drink are you ordering at a luxury lounge?", options: [
-      { label: "An icy mojito or G&T with fresh lime and crushed mint.", effects: { "p:Citrus": 2, "p:Fresh": 1 } },
-      { label: "A warm espresso or a glass of aged cognac / whiskey.", effects: { "p:Gourmand": 2, "p:Sweet": 1 } },
-      { label: "A cold, sophisticated iced oolong or Earl Grey.", effects: { "p:Fresh": 1, "p:Spicy": 1 } },
+    { phase: "Olfactory Archetypes", q: "Which of these drinks has an aroma you find most appealing?", options: [
+      { label: "Fresh lime and crushed mint over ice.", effects: { "p:Citrus": 2, "p:Fresh": 1 } },
+      { label: "Warm espresso and aged cognac.", effects: { "p:Gourmand": 2, "p:Sweet": 1 } },
+      { label: "Cool, refined oolong and bergamot tea.", effects: { "p:Fresh": 1, "p:Spicy": 1 } },
     ]},
     { phase: "Olfactory Archetypes", q: "Where will you wear this fragrance the most?", options: [
       { label: "A beach day or poolside hangout.", effects: { summer: 1, day: 1, "p:Aquatic": 2, "p:Fresh": 1 } },
@@ -1531,7 +1535,7 @@ const quizFragrances = fragrances.map((f) => ({
       { label: "Effortless", effects: { "p:Fresh": 1, designer: 1 } },
       { label: "Commanding", effects: { "p:Woody": 1, "p:Leather": 1 } },
       { label: "Unconventional", effects: { niche: 2 } },
-      { label: "Luxurious", effects: { expensive: 2 } },
+      { label: "Luxurious", effects: { "pb:luxury": 2 } },
     ]},
   ];
 
@@ -1544,9 +1548,11 @@ const quizFragrances = fragrances.map((f) => ({
   const answers: number[] = [];
   let qi = 0;
 
+  type Band = "value" | "mid" | "luxury";
   type ScoreState = {
     summer: number; winter: number; day: number; night: number;
-    affordable: number; expensive: number; designer: number; niche: number;
+    designer: number; niche: number;
+    bands: { value: number; mid: number; luxury: number };
     gender: { men: number; women: number; unisex: number };
     profiles: Record<string, number>;
     projection: { Low: number; Moderate: number; High: number };
@@ -1554,7 +1560,8 @@ const quizFragrances = fragrances.map((f) => ({
   function blankState(): ScoreState {
     return {
       summer: 0, winter: 0, day: 0, night: 0,
-      affordable: 0, expensive: 0, designer: 0, niche: 0,
+      designer: 0, niche: 0,
+      bands: { value: 0, mid: 0, luxury: 0 },
       gender: { men: 0, women: 0, unisex: 0 },
       profiles: {}, projection: { Low: 0, Moderate: 0, High: 0 },
     };
@@ -1567,6 +1574,7 @@ const quizFragrances = fragrances.map((f) => ({
       for (const [k, v] of Object.entries(eff)) {
         if (k.startsWith("p:")) s.profiles[k.slice(2)] = (s.profiles[k.slice(2)] || 0) + v;
         else if (k.startsWith("proj:")) s.projection[k.slice(5) as "Low" | "Moderate" | "High"] += v;
+        else if (k.startsWith("pb:")) s.bands[k.slice(3) as Band] += v;
         else if (k.startsWith("g:")) s.gender[k.slice(2) as "men" | "women" | "unisex"] += v;
         else (s as any)[k] += v;
       }
@@ -1597,7 +1605,7 @@ const quizFragrances = fragrances.map((f) => ({
     score += f.season === "summer" ? s.summer : s.winter;
     for (const t of f.times) score += (t === "day" ? s.day : s.night) * 0.5;
     score += f.houseType === "designer" ? s.designer : s.niche;
-    score += (f.priceTier === "budget" ? s.affordable : s.expensive) * 0.5;
+    score += (s.bands[f.priceBand] || 0) * 0.6;
     for (const fam of f.families) score += s.profiles[fam] || 0;
     score += s.projection[fragProjection(f)] || 0;
     return score;
@@ -1613,9 +1621,22 @@ const quizFragrances = fragrances.map((f) => ({
     if (topGender === "men") pool = pool.filter((f) => f.gender !== "women");
     else if (topGender === "women") pool = pool.filter((f) => f.gender !== "men");
     if (pool.length === 0) pool = quizFrags.slice();
-    // Hard boundary: budget vs premium.
-    if (s.affordable > s.expensive) pool = pool.filter((f) => f.priceTier === "budget");
-    else if (s.expensive > s.affordable) pool = pool.filter((f) => f.priceTier === "premium");
+    // Price band: bias to the chosen band, widening to neighbours if the strict
+    // band is too sparse (the sub-₹1,600 "value" tier is small).
+    const bandOrder: Band[] = ["value", "mid", "luxury"];
+    const topBand = bandOrder.reduce(
+      (a, b) => (s.bands[b] > s.bands[a] ? b : a), "value" as Band);
+    if (s.bands[topBand] > 0) {
+      const ti = bandOrder.indexOf(topBand);
+      const allowed = new Set<Band>([topBand]);
+      let banded = pool.filter((f) => allowed.has(f.priceBand));
+      for (let r = 1; banded.length < 8 && r < 3; r++) {
+        if (ti - r >= 0) allowed.add(bandOrder[ti - r]);
+        if (ti + r <= 2) allowed.add(bandOrder[ti + r]);
+        banded = pool.filter((f) => allowed.has(f.priceBand));
+      }
+      if (banded.length) pool = banded;
+    }
     if (pool.length === 0) pool = quizFrags.slice();
 
     const scored = pool
@@ -1679,7 +1700,7 @@ const quizFragrances = fragrances.map((f) => ({
       const f = r.f;
       if (!f) return "";
       return `
-        <div class="quiz-result-card group flex h-full cursor-pointer flex-col items-center p-4 text-center sm:items-start sm:text-left" role="button" tabindex="0" data-result-id="${f.id}">
+        <div class="quiz-result-card group flex h-full cursor-pointer flex-col items-center p-4 text-center sm:items-start sm:text-left" role="button" tabindex="0" data-result-id="${f.id}" data-amazon="${localizeAmazon(f.amazon)}">
           <div class="flex w-full items-start justify-between gap-2">
             <span class="pt-1 text-[0.6rem] uppercase tracking-[0.2em]" style="color:var(--accent)">${r.label}</span>
             <div class="flex shrink-0 items-center gap-2">
@@ -1694,7 +1715,7 @@ const quizFragrances = fragrances.map((f) => ({
           </div>
           <span class="text-base font-bold leading-tight">${f.brand}</span>
           <span class="text-sm font-light" style="color:var(--text-muted)">${f.name}</span>
-          <a href="${localizeAmazon(f.amazon)}" target="_blank" rel="noopener" data-stop class="mt-auto pt-3 text-[0.6rem] uppercase tracking-[0.18em] transition-opacity hover:opacity-70" style="color:var(--accent)">Find on Amazon +</a>
+          <button type="button" data-stop data-view-details class="mt-auto pt-3 text-[0.6rem] uppercase tracking-[0.18em] transition-opacity hover:opacity-70" style="color:var(--accent)">View details +</button>
         </div>`;
     }).join("");
     stageEl.innerHTML = `
@@ -1714,16 +1735,22 @@ const quizFragrances = fragrances.map((f) => ({
       </div>`;
     const recIds = recs.map((r) => r.f?.id).filter(Boolean) as string[];
     stageEl.querySelectorAll<HTMLElement>("[data-result-id]").forEach((card) => {
-      const open = (e: Event) => {
-        if ((e.target as HTMLElement).closest("[data-stop]")) return; // heart handled separately
+      // The card body takes the visitor straight to Amazon; "View details"
+      // (a data-stop button) layers the drawer on top of the results instead.
+      const goAmazon = (e: Event) => {
+        if ((e.target as HTMLElement).closest("[data-stop]")) return; // heart & view-details handled separately
+        const url = card.dataset.amazon;
+        if (url) window.open(url, "_blank", "noopener");
+      };
+      card.addEventListener("click", goAmazon);
+      card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goAmazon(e); } });
+      // Keep the quiz results open underneath; the drawer layers on top, so
+      // closing the drawer returns to the four assorted picks.
+      card.querySelector<HTMLElement>("[data-view-details]")?.addEventListener("click", () => {
         const id = card.dataset.resultId || "";
-        // Keep the quiz results open underneath; the drawer layers on top, so
-        // closing the drawer returns to the four assorted picks.
         const gridBtn = document.querySelector<HTMLElement>(`#grid [data-open-drawer][data-id="${id}"]`);
         if (gridBtn) openDrawer(gridBtn);
-      };
-      card.addEventListener("click", open);
-      card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e); } });
+      });
     });
     const wishAllBtn = document.getElementById("quiz-wishlist-all");
     wishAllBtn?.addEventListener("click", function saveAll() {
@@ -1783,8 +1810,8 @@ const quizFragrances = fragrances.map((f) => ({
       quizBtn.style.setProperty("--my", `${cy}px`);
     };
     const tick = () => {
-      cx += (tx - cx) * 0.16; // lower factor = more "drag"/lag
-      cy += (ty - cy) * 0.16;
+      cx += (tx - cx) * 0.5; // higher factor = snappier, less "drag"/lag
+      cy += (ty - cy) * 0.5;
       setVars();
       if (inside || Math.abs(tx - cx) > 0.4 || Math.abs(ty - cy) > 0.4) {
         raf = requestAnimationFrame(tick);

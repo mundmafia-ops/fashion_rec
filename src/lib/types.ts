@@ -4,6 +4,14 @@ export type Season = "summer" | "winter";
 export type TimeOfDay = "day" | "night";
 export type HouseType = "niche" | "designer";
 export type PriceTier = "premium" | "budget";
+/**
+ * Three-tier price band based on typical Indian retail price (₹), per the quiz's
+ * budget question:
+ *   value  → below ₹2,300
+ *   mid    → ₹2,300 – ₹6,000
+ *   luxury → ₹6,000 and above
+ */
+export type PriceBand = "value" | "mid" | "luxury";
 export type Gender = "men" | "women" | "unisex";
 
 export const GENDERS: Gender[] = ["men", "women", "unisex"];
@@ -47,6 +55,8 @@ export type Fragrance = {
   times: TimeOfDay[];
   houseType: HouseType;
   priceTier: PriceTier;
+  /** Three-tier price band (value/mid/luxury). Resolved from PRICE_BANDS. */
+  priceBand?: PriceBand;
   /** Marketed gender. Existing men's-leaning entries default to "men". */
   gender?: Gender;
   families: Family[];
@@ -72,4 +82,17 @@ export const HOUSE_LABELS: Record<HouseType, string> = {
 export const TIER_LABELS: Record<PriceTier, string> = {
   premium: "Premium",
   budget: "Budget",
+};
+
+export const PRICE_BAND_LABELS: Record<PriceBand, string> = {
+  value: "Value",
+  mid: "Mid",
+  luxury: "Luxury",
+};
+
+/** Short price-range caption per band, in ₹. */
+export const PRICE_BAND_RANGES: Record<PriceBand, string> = {
+  value: "Under ₹2,300",
+  mid: "₹2,300–6,000",
+  luxury: "₹6,000+",
 };

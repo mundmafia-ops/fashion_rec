@@ -1,5 +1,6 @@
-import type { Fragrance, Gender, Performance, ShopLinks } from "@/lib/types";
+import type { Fragrance, Gender, Performance, PriceBand, ShopLinks } from "@/lib/types";
 import { extraFragrances } from "@/data/fragrances-extra";
+import { PRICE_BANDS } from "@/data/price-bands";
 
 const baseFragrances: Fragrance[] = [
   // ─────────────── NICHE HOUSES · PREMIUM ───────────────
@@ -709,8 +710,18 @@ const baseFragrances: Fragrance[] = [
   },
 ];
 
+/**
+ * Resolve a fragrance's 3-tier price band. Falls back to a coarse mapping from
+ * the legacy 2-tier priceTier for any id not yet in PRICE_BANDS.
+ */
+export function priceBandOf(f: Fragrance): PriceBand {
+  return PRICE_BANDS[f.id] ?? (f.priceTier === "premium" ? "luxury" : "value");
+}
+
 /** Full catalogue: original men's-leaning core + the expanded edit. */
-export const fragrances: Fragrance[] = [...baseFragrances, ...extraFragrances];
+export const fragrances: Fragrance[] = [...baseFragrances, ...extraFragrances].map(
+  (f) => ({ ...f, priceBand: priceBandOf(f) }),
+);
 
 /** Marketed gender, defaulting legacy (untagged) entries to men's. */
 export function genderOf(f: Fragrance): Gender {

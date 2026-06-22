@@ -1,7 +1,7 @@
 ---
 import NoteRow from "@/components/NoteRow.astro";
-import { HOUSE_LABELS, TIER_LABELS, type Fragrance } from "@/lib/types";
-import { shopLinks, initials, fragranceImage, genderOf, performanceOf } from "@/data/fragrances";
+import { HOUSE_LABELS, PRICE_BAND_LABELS, type Fragrance } from "@/lib/types";
+import { shopLinks, initials, fragranceImage, genderOf, performanceOf, priceBandOf } from "@/data/fragrances";
 
 interface Props {
   f: Fragrance;
@@ -14,6 +14,8 @@ const img = fragranceImage(f.id);
 const gender = genderOf(f);
 const genderLabel = { men: "Men", women: "Women", unisex: "Unisex" }[gender];
 const perf = performanceOf(f);
+const band = priceBandOf(f);
+const bandLabel = PRICE_BAND_LABELS[band];
 const searchText = [
   f.brand, f.name, ...f.families,
   ...f.notes.top, ...f.notes.middle, ...f.notes.base,
@@ -26,7 +28,7 @@ const delay = (index % 4) * 80;
   data-season={f.season}
   data-times={f.times.join(" ")}
   data-house={f.houseType}
-  data-price={f.priceTier}
+  data-price={band}
   data-gender={genderOf(f)}
   data-sillage={perf.sillage}
   data-projection={perf.projection}
@@ -44,7 +46,7 @@ const delay = (index % 4) * 80;
     data-name={f.name}
     data-desc={f.description}
     data-house={HOUSE_LABELS[f.houseType]}
-    data-price={TIER_LABELS[f.priceTier]}
+    data-price={bandLabel}
     data-season={f.season}
     data-times={f.times.join(" ")}
     data-top={f.notes.top.join(", ")}
@@ -87,7 +89,7 @@ const delay = (index % 4) * 80;
         class="absolute right-0 top-0 rounded-full border px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.16em]"
         style="border-color:var(--border);color:var(--text-faint);background:var(--surface)"
       >
-        {f.priceTier === "premium" ? "Premium" : "Budget"}
+        {bandLabel}
       </span>
     </div>
 
